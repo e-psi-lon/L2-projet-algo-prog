@@ -1,0 +1,18 @@
+# WordCrafter Database Configuration
+# Copy this file to .env and configure for your environment
+
+# Database type: SQLITE (development) or MYSQL (production)
+# DB_TYPE=SQLITE
+# DB_TYPE=MYSQL
+
+# MySQL/MariaDB configuration (only needed when DB_TYPE=MYSQL)
+# DB_HOST=localhost
+# DB_PORT=3306
+# DB_NAME=wordcrafter
+# DB_USER=wordcrafter
+# DB_PASSWORD=your_secure_password
+
+# Development mode (default)
+# Uses SQLite database stored in wordcrafter.db
+# No additional configuration needed
+
