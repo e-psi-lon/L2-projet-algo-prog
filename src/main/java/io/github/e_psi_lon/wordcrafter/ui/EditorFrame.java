@@ -1,7 +1,6 @@
 package io.github.e_psi_lon.wordcrafter.ui;
 
 import io.github.e_psi_lon.wordcrafter.database.DatabaseManager;
-import io.github.e_psi_lon.wordcrafter.model.Morpheme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -59,14 +58,14 @@ public class EditorFrame extends JFrame {
         JTextField morphemeTextField = new JTextField(20);
         panel.add(morphemeTextField, gbc);
 
-        // Morpheme type
+        // Morpheme definition
         gbc.gridx = 0;
         gbc.gridy = 1;
-        panel.add(new JLabel("Type:"), gbc);
+        panel.add(new JLabel("Definition:"), gbc);
 
         gbc.gridx = 1;
-        JComboBox<Morpheme.MorphemeType> typeCombo = new JComboBox<>(Morpheme.MorphemeType.values());
-        panel.add(typeCombo, gbc);
+        JTextField definitionTextField = new JTextField(20);
+        panel.add(definitionTextField, gbc);
 
         // Add button
         gbc.gridx = 0;
@@ -78,10 +77,14 @@ public class EditorFrame extends JFrame {
         addButton.setForeground(Color.WHITE);
         addButton.addActionListener(e -> {
             String text = morphemeTextField.getText().trim();
-            if (!text.isEmpty()) {
-                DatabaseManager.getInstance().addMorpheme(text, (Morpheme.MorphemeType) typeCombo.getSelectedItem());
+            String definition = definitionTextField.getText().trim();
+            if (!text.isEmpty() && !definition.isEmpty()) {
+                DatabaseManager.getInstance().addMorpheme(text, definition);
                 JOptionPane.showMessageDialog(this, "Morpheme added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 morphemeTextField.setText("");
+                definitionTextField.setText("");
+            } else {
+                JOptionPane.showMessageDialog(this, "Please fill in all fields!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
         panel.add(addButton, gbc);

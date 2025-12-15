@@ -112,8 +112,8 @@ public class LoginDialog extends JDialog {
             return;
         }
         
-        boolean success = DatabaseManager.getInstance().createUser(username, password, User.UserRole.PLAYER);
-        
+        boolean success = DatabaseManager.getInstance().createPlayer(username, password);
+
         if (success) {
             JOptionPane.showMessageDialog(this, "Inscription réussie ! Vous pouvez maintenant vous connecter.", "Succès", JOptionPane.INFORMATION_MESSAGE);
         } else {

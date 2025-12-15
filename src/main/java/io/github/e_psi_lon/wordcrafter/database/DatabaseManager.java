@@ -1,8 +1,6 @@
 package io.github.e_psi_lon.wordcrafter.database;
 
-import io.github.e_psi_lon.wordcrafter.model.Morpheme;
-import io.github.e_psi_lon.wordcrafter.model.User;
-import io.github.e_psi_lon.wordcrafter.model.Word;
+import io.github.e_psi_lon.wordcrafter.model.*;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -85,8 +83,8 @@ public class DatabaseManager {
             createMorphemesTable = """
                 CREATE TABLE IF NOT EXISTS morphemes (
                     id INT AUTO_INCREMENT PRIMARY KEY,
-                    text VARCHAR(50) NOT NULL,
-                    type ENUM('PREFIX', 'ROOT', 'SUFFIX') NOT NULL
+                    text VARCHAR(100) NOT NULL,
+                    definition TEXT NOT NULL
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
                 """;
 
@@ -111,15 +109,15 @@ public class DatabaseManager {
 
             createPlayerWordsTable = """
                 CREATE TABLE IF NOT EXISTS player_words (
-                    user_id INT,
-                    word_id INT,
+                    user_id INT NOT NULL,
+                    word_id INT NOT NULL,
                     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                     FOREIGN KEY (word_id) REFERENCES words(id) ON DELETE CASCADE,
                     PRIMARY KEY (user_id, word_id)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
                 """;
         } else {
-            // SQLite syntax (no ENUM support, use VARCHAR with CHECK constraint)
+            // SQLite syntax
             createUsersTable = """
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -133,8 +131,8 @@ public class DatabaseManager {
             createMorphemesTable = """
                 CREATE TABLE IF NOT EXISTS morphemes (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    text VARCHAR(50) NOT NULL,
-                    type VARCHAR(10) NOT NULL CHECK(type IN ('PREFIX', 'ROOT', 'SUFFIX'))
+                    text VARCHAR(100) NOT NULL,
+                    definition TEXT NOT NULL
                 )
                 """;
 
@@ -159,10 +157,10 @@ public class DatabaseManager {
 
             createPlayerWordsTable = """
                 CREATE TABLE IF NOT EXISTS player_words (
-                    user_id INTEGER,
-                    word_id INTEGER,
-                    FOREIGN KEY (user_id) REFERENCES users(id),
-                    FOREIGN KEY (word_id) REFERENCES words(id),
+                    user_id INTEGER NOT NULL,
+                    word_id INTEGER NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                    FOREIGN KEY (word_id) REFERENCES words(id) ON DELETE CASCADE,
                     PRIMARY KEY (user_id, word_id)
                 )
                 """;
@@ -198,11 +196,17 @@ public class DatabaseManager {
         }
 
         // Insert some sample morphemes
-        String insertMorpheme = "INSERT INTO morphemes (text, type) VALUES (?, ?)";
+        String insertMorpheme = "INSERT INTO morphemes (text, definition) VALUES (?, ?)";
         String[][] sampleMorphemes = {
-            {"dé", "PREFIX"}, {"re", "PREFIX"}, {"pré", "PREFIX"},
-            {"jouer", "ROOT"}, {"faire", "ROOT"}, {"voir", "ROOT"},
-            {"able", "SUFFIX"}, {"ment", "SUFFIX"}, {"tion", "SUFFIX"}
+            {"dé", "Enlever ou inverser"},
+            {"re", "De nouveau ou en arrière"},
+            {"pré", "Avant"},
+            {"jouer", "Pratiquer un jeu ou un divertissement"},
+            {"faire", "Accomplir une action"},
+            {"voir", "Percevoir avec les yeux"},
+            {"able", "Capable d'être"},
+            {"ment", "De manière"},
+            {"tion", "Action ou procédé"}
         };
 
         try (PreparedStatement pstmt = connection.prepareStatement(insertMorpheme)) {
@@ -217,46 +221,38 @@ public class DatabaseManager {
         String insertWord = "INSERT INTO words (text, points) VALUES (?, ?)";
         String insertWordMorpheme = "INSERT INTO word_morphemes (word_id, morpheme_id, position) VALUES (?, ?, ?)";
 
-        try (PreparedStatement wordStmt = connection.prepareStatement(insertWord, Statement.RETURN_GENERATED_KEYS)) {
-            // Word: refaire = re + faire
+        try (PreparedStatement wordStmt = connection.prepareStatement(insertWord, Statement.RETURN_GENERATED_KEYS);
+             PreparedStatement morphemeStmt = connection.prepareStatement(insertWordMorpheme)) {
             wordStmt.setString(1, "refaire");
             wordStmt.setInt(2, 5);
             wordStmt.executeUpdate();
 
             int wordId = getGeneratedKey(wordStmt);
-            try (PreparedStatement morphemeStmt = connection.prepareStatement(insertWordMorpheme)) {
-                // re (morpheme id 2) at position 0
-                morphemeStmt.setInt(1, wordId);
-                morphemeStmt.setInt(2, 2);
-                morphemeStmt.setInt(3, 0);
-                morphemeStmt.executeUpdate();
+            morphemeStmt.setInt(1, wordId);
+            morphemeStmt.setInt(2, 2);
+            morphemeStmt.setInt(3, 0);
+            morphemeStmt.executeUpdate();
 
-                // faire (morpheme id 5) at position 1
-                morphemeStmt.setInt(1, wordId);
-                morphemeStmt.setInt(2, 5);
-                morphemeStmt.setInt(3, 1);
-                morphemeStmt.executeUpdate();
-            }
+            morphemeStmt.setInt(1, wordId);
+            morphemeStmt.setInt(2, 5);
+            morphemeStmt.setInt(3, 1);
+            morphemeStmt.executeUpdate();
 
-            // Word: prévoir = pré + voir
+            // Word: prévoir = pré (id 3) + voir (id 6)
             wordStmt.setString(1, "prévoir");
             wordStmt.setInt(2, 5);
             wordStmt.executeUpdate();
 
             wordId = getGeneratedKey(wordStmt);
-            try (PreparedStatement morphemeStmt = connection.prepareStatement(insertWordMorpheme)) {
-                // pré (morpheme id 3) at position 0
-                morphemeStmt.setInt(1, wordId);
-                morphemeStmt.setInt(2, 3);
-                morphemeStmt.setInt(3, 0);
-                morphemeStmt.executeUpdate();
+            morphemeStmt.setInt(1, wordId);
+            morphemeStmt.setInt(2, 3);
+            morphemeStmt.setInt(3, 0);
+            morphemeStmt.executeUpdate();
 
-                // voir (morpheme id 6) at position 1
-                morphemeStmt.setInt(1, wordId);
-                morphemeStmt.setInt(2, 6);
-                morphemeStmt.setInt(3, 1);
-                morphemeStmt.executeUpdate();
-            }
+            morphemeStmt.setInt(1, wordId);
+            morphemeStmt.setInt(2, 6);
+            morphemeStmt.setInt(3, 1);
+            morphemeStmt.executeUpdate();
         }
     }
 
@@ -273,13 +269,21 @@ public class DatabaseManager {
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                return new User(
-                    rs.getInt("id"),
-                    rs.getString("username"),
-                    rs.getString("password_hash"),
-                    User.UserRole.valueOf(rs.getString("role")),
-                    rs.getInt("score")
-                );
+                if (rs.getString("role").equals("ADMIN")) {
+                    return new Admin(
+                        rs.getInt("id"),
+                        rs.getString("username"),
+                        rs.getString("password_hash")
+                    );
+                }
+                else {
+                    return new Player(
+                        rs.getInt("id"),
+                        rs.getString("username"),
+                        rs.getString("password_hash"),
+                        rs.getInt("score")
+                    );
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -287,12 +291,27 @@ public class DatabaseManager {
         return null;
     }
 
-    public boolean createUser(String username, String password, User.UserRole role) {
+    public boolean createPlayer(String username, String password) {
         String query = "INSERT INTO users (username, password_hash, role, score) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setString(1, username);
             pstmt.setString(2, hashPassword(password));
-            pstmt.setString(3, role.name());
+            pstmt.setString(3, "PLAYER");
+            pstmt.setInt(4, 0);
+            pstmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean createAdmin(String username, String password) {
+        String query = "INSERT INTO users (username, password_hash, role, score) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, username);
+            pstmt.setString(2, hashPassword(password));
+            pstmt.setString(3, "ADMIN");
             pstmt.setInt(4, 0);
             pstmt.executeUpdate();
             return true;
@@ -312,7 +331,7 @@ public class DatabaseManager {
                 morphemes.add(new Morpheme(
                     rs.getInt("id"),
                     rs.getString("text"),
-                    Morpheme.MorphemeType.valueOf(rs.getString("type"))
+                    rs.getString("definition")
                 ));
             }
         } catch (SQLException e) {
@@ -387,11 +406,11 @@ public class DatabaseManager {
         }
     }
 
-    public void addMorpheme(String text, Morpheme.MorphemeType type) {
-        String query = "INSERT INTO morphemes (text, type) VALUES (?, ?)";
+    public void addMorpheme(String text, String definition) {
+        String query = "INSERT INTO morphemes (text, definition) VALUES (?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setString(1, text);
-            pstmt.setString(2, type.name());
+            pstmt.setString(2, definition);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

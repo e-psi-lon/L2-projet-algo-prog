@@ -2,6 +2,7 @@ package io.github.e_psi_lon.wordcrafter.ui.game;
 
 import io.github.e_psi_lon.wordcrafter.database.DatabaseManager;
 import io.github.e_psi_lon.wordcrafter.model.Morpheme;
+import io.github.e_psi_lon.wordcrafter.model.Player;
 import io.github.e_psi_lon.wordcrafter.model.User;
 import io.github.e_psi_lon.wordcrafter.model.Word;
 
@@ -89,7 +90,7 @@ public class MainGameFrame extends JFrame {
         rightPanel.setBackground(LIGHT_CLOUD);
         rightPanel.setPreferredSize(new Dimension(200, 0));
 
-        scoreLabel = new JLabel("Score: " + currentUser.getScore());
+        scoreLabel = new JLabel("Score: " + (currentUser instanceof Player ? ((Player) currentUser).getScore() : 0));
         scoreLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
         scoreLabel.setHorizontalAlignment(SwingConstants.CENTER);
         rightPanel.add(scoreLabel, BorderLayout.NORTH);
@@ -130,8 +131,8 @@ public class MainGameFrame extends JFrame {
     }
 
     private JButton createMorphemeButton(Morpheme morpheme) {
-        JButton button = new JButton("<html><center>" + morpheme.getText() + "<br><small>" +
-                                     morpheme.getType().name() + "</small></center></html>");
+        JButton button = new JButton("<html><center>" + morpheme.text() + "<br><small>" +
+                                     morpheme.definition() + "</small></center></html>");
         button.setBackground(MORPHEME_COLOR);
         button.setFont(new Font("SansSerif", Font.PLAIN, 14));
         button.setFocusPainted(false);
@@ -156,7 +157,7 @@ public class MainGameFrame extends JFrame {
 
         for (int i = 0; i < selectedMorphemes.size(); i++) {
             Morpheme morpheme = selectedMorphemes.get(i);
-            JLabel label = new JLabel(morpheme.getText());
+            JLabel label = new JLabel(morpheme.text());
             label.setFont(new Font("SansSerif", Font.BOLD, 18));
             label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
@@ -190,7 +191,7 @@ public class MainGameFrame extends JFrame {
                 String buttonText = button.getText().replaceAll("<[^>]*>", "").trim();
 
                 boolean isSelected = selectedMorphemes.stream()
-                    .anyMatch(m -> buttonText.contains(m.getText()));
+                    .anyMatch(m -> buttonText.contains(m.text()));
 
                 button.setBackground(isSelected ? SELECTED_COLOR : MORPHEME_COLOR);
             }
@@ -207,12 +208,12 @@ public class MainGameFrame extends JFrame {
         // Build the text of the word
         StringBuilder wordText = new StringBuilder();
         for (Morpheme m : selectedMorphemes) {
-            wordText.append(m.getText());
+            wordText.append(m.text());
         }
 
         // Get IDs of the morphemes
         List<Integer> morphemeIds = selectedMorphemes.stream()
-            .map(Morpheme::getId)
+            .map(Morpheme::id)
             .toList();
 
         // Validate against the database
@@ -221,17 +222,17 @@ public class MainGameFrame extends JFrame {
         if (validWord != null) {
             // The word is valid
             constructedWords.add(validWord);
-            constructedWordsModel.addElement(validWord.getText() + " (" + validWord.getPoints() + " pts)");
+            constructedWordsModel.addElement(validWord.text() + " (" + validWord.points() + " pts)");
 
             // Update the score
-            int newScore = currentUser.getScore() + validWord.getPoints();
-            currentUser.setScore(newScore);
-            DatabaseManager.getInstance().updateUserScore(currentUser.getId(), validWord.getPoints());
-            DatabaseManager.getInstance().addPlayerWord(currentUser.getId(), validWord.getId());
+            int currentScore = currentUser instanceof Player ? ((Player) currentUser).getScore() : 0;
+            int newScore = currentScore + validWord.points();
+            DatabaseManager.getInstance().updateUserScore(currentUser.getId(), validWord.points());
+            DatabaseManager.getInstance().addPlayerWord(currentUser.getId(), validWord.id());
             scoreLabel.setText("Score: " + newScore);
 
             JOptionPane.showMessageDialog(this,
-                "Mot valide ! Vous avez gagné " + validWord.getPoints() + " points !",
+                "Mot valide ! Vous avez gagné " + validWord.points() + " points !",
                 "Succès", JOptionPane.INFORMATION_MESSAGE);
 
             clearSelection();
