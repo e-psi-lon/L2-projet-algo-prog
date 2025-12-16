@@ -57,5 +57,11 @@ public class GameController {
     public GameStateManager getGameStateManager() {
         return gameStateManager;
     }
+
+    public void awardPoints(int points) {
+        int newScore = gameStateManager.getCurrentScore() + points;
+        gameStateManager.updateScore(newScore);
+        playerService.addScore(gameStateManager.getCurrentPlayer().getId(), points);
+    }
 }
 

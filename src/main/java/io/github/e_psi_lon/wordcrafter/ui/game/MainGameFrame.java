@@ -17,20 +17,17 @@ import java.util.List;
  * Main game mode - morpheme grid that can be combined to make words
  */
 public class MainGameFrame extends GameFrame implements GameStateListener {
-    private final User currentUser;
     private final GameController gameController;
     private final GameStateManager gameStateManager;
     private List<Morpheme> availableMorphemes;
     private JButton[] morphemeButtons;
 
-    private JPanel gridPanel;
     private JPanel constructedWordPanel;
     private JLabel scoreLabel;
     private JList<String> constructedWordsList;
     private DefaultListModel<String> constructedWordsModel;
 
     public MainGameFrame(User user, GameController gameController, GameStateManager gameStateManager) {
-        this.currentUser = user;
         this.gameController = gameController;
         this.gameStateManager = gameStateManager;
 
@@ -69,20 +66,35 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
         topPanel.add(buttonPanel, BorderLayout.SOUTH);
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
-        // Central panel - morphemes grid
-        gridPanel = new JPanel(new GridLayout(3, 3, 10, 10));
+        int totalMorphemes = availableMorphemes.size();
+        int gridSize = (int) Math.ceil(Math.sqrt(totalMorphemes));
+
+        JPanel gridContainer = new JPanel(new BorderLayout());
+        gridContainer.setBackground(LIGHT_CLOUD);
+        gridContainer.setBorder(BorderFactory.createTitledBorder("Morphèmes disponibles (" + totalMorphemes + ")"));
+
+        JPanel gridPanel = new JPanel(new GridLayout(gridSize, gridSize, 10, 10));
         gridPanel.setBackground(LIGHT_CLOUD);
 
-        morphemeButtons = new JButton[Math.min(9, availableMorphemes.size())];
+        morphemeButtons = new JButton[totalMorphemes];
 
-        for (int i = 0; i < morphemeButtons.length; i++) {
+        for (int i = 0; i < totalMorphemes; i++) {
             Morpheme morpheme = availableMorphemes.get(i);
             JButton morphemeButton = createMorphemeButton(morpheme, i);
             morphemeButtons[i] = morphemeButton;
             gridPanel.add(morphemeButton);
         }
 
-        mainPanel.add(gridPanel, BorderLayout.CENTER);
+        // Fill remaining spaces with empty panels to keep square grid
+        int totalCells = gridSize * gridSize;
+        for (int i = totalMorphemes; i < totalCells; i++) {
+            JPanel emptyPanel = new JPanel();
+            emptyPanel.setBackground(LIGHT_CLOUD);
+            gridPanel.add(emptyPanel);
+        }
+
+        gridContainer.add(gridPanel, BorderLayout.CENTER);
+        mainPanel.add(gridContainer, BorderLayout.CENTER);
 
         // Right panel - info and constructed words list
         JPanel rightPanel = new JPanel(new BorderLayout(5, 5));

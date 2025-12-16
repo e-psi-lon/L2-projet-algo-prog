@@ -17,6 +17,10 @@ public class GameService {
         return databaseManager.getAllMorphemes();
     }
 
+    public List<Word> getAllAvailableWords() {
+        return databaseManager.getAllWords();
+    }
+
     public Word validateWord(String wordText, List<Integer> morphemeIds) {
         return databaseManager.validateWord(wordText, morphemeIds);
     }
