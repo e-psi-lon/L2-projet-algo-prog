@@ -18,7 +18,7 @@ public class LoginDialog extends JDialog {
     private static final Color BUTTON_COLOR = new Color(255, 182, 193);
 
     public LoginDialog(Frame parent) {
-        super(parent, "Login / Register", true);
+        super(parent, "Se connecter/S'inscrire", true);
         setSize(400, 250);
         setLocationRelativeTo(parent);
 
@@ -36,7 +36,7 @@ public class LoginDialog extends JDialog {
         // Username
         gbc.gridx = 0;
         gbc.gridy = 0;
-        mainPanel.add(new JLabel("Username:"), gbc);
+        mainPanel.add(new JLabel("Nom d'utilisateur:"), gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 0;
@@ -46,7 +46,7 @@ public class LoginDialog extends JDialog {
         // Password
         gbc.gridx = 0;
         gbc.gridy = 1;
-        mainPanel.add(new JLabel("Password:"), gbc);
+        mainPanel.add(new JLabel("Mot de passe:"), gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 1;
@@ -54,26 +54,7 @@ public class LoginDialog extends JDialog {
         mainPanel.add(passwordField, gbc);
 
         // Buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-        buttonPanel.setBackground(LIGHT_CLOUD);
-
-        JButton loginButton = new JButton("Login");
-        loginButton.setBackground(BUTTON_COLOR);
-        loginButton.setForeground(Color.WHITE);
-        loginButton.addActionListener(e -> login());
-        buttonPanel.add(loginButton);
-
-        JButton registerButton = new JButton("Register");
-        registerButton.setBackground(BUTTON_COLOR);
-        registerButton.setForeground(Color.WHITE);
-        registerButton.addActionListener(e -> register());
-        buttonPanel.add(registerButton);
-
-        JButton cancelButton = new JButton("Cancel");
-        cancelButton.setBackground(BUTTON_COLOR);
-        cancelButton.setForeground(Color.WHITE);
-        cancelButton.addActionListener(e -> dispose());
-        buttonPanel.add(cancelButton);
+        JPanel buttonPanel = createButtonPanel();
 
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -82,6 +63,30 @@ public class LoginDialog extends JDialog {
         mainPanel.add(buttonPanel, gbc);
 
         add(mainPanel);
+    }
+
+    private JPanel createButtonPanel() {
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        buttonPanel.setBackground(LIGHT_CLOUD);
+
+        JButton loginButton = new JButton("Se connecter");
+        loginButton.setBackground(BUTTON_COLOR);
+        loginButton.setForeground(Color.WHITE);
+        loginButton.addActionListener(e -> login());
+        buttonPanel.add(loginButton);
+
+        JButton registerButton = new JButton("S'inscrire");
+        registerButton.setBackground(BUTTON_COLOR);
+        registerButton.setForeground(Color.WHITE);
+        registerButton.addActionListener(e -> register());
+        buttonPanel.add(registerButton);
+
+        JButton cancelButton = new JButton("Annuler");
+        cancelButton.setBackground(BUTTON_COLOR);
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.addActionListener(e -> dispose());
+        buttonPanel.add(cancelButton);
+        return buttonPanel;
     }
 
     private void login() {

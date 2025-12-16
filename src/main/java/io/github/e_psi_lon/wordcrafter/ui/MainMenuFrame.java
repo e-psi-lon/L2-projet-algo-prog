@@ -78,17 +78,17 @@ public class MainMenuFrame extends JFrame {
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
 
         // Other buttons
-        JButton settingsButton = createStyledButton("Settings");
+        JButton settingsButton = createStyledButton("Paramètres");
         settingsButton.addActionListener(e -> showSettings());
         mainPanel.add(settingsButton);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
 
-        JButton loginButton = createStyledButton("Login / Account");
+        JButton loginButton = createStyledButton("Connection / Compte");
         loginButton.addActionListener(e -> showLogin());
         mainPanel.add(loginButton);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
 
-        JButton quitButton = createStyledButton("Quit");
+        JButton quitButton = createStyledButton("Quitter");
         quitButton.addActionListener(e -> System.exit(0));
         mainPanel.add(quitButton);
 
@@ -176,17 +176,7 @@ public class MainMenuFrame extends JFrame {
         // Create as a modal dialog instead of a frame
         JDialog gameDialog = new JDialog(this, "WordCrafter - Mode de jeu principal", true);
         MainGameFrame gameFrame = new MainGameFrame(currentUser);
-        gameDialog.setContentPane(gameFrame.getContentPane());
-        gameDialog.setSize(gameFrame.getSize());
-        gameDialog.setLocationRelativeTo(this);
-        gameDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        gameDialog.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosed(java.awt.event.WindowEvent windowEvent) {
-                hideFrozenOverlay();
-            }
-        });
-        gameDialog.setVisible(true);
+        gameLauncher(gameDialog, gameFrame.getContentPane(), gameFrame.getSize());
     }
     
     private void launchFreeBuild() {
@@ -194,35 +184,29 @@ public class MainMenuFrame extends JFrame {
 
         JDialog freeBuildDialog = new JDialog(this, "WordCrafter - Mode construction libre", true);
         FreeBuildFrame freeBuildFrame = new FreeBuildFrame();
-        freeBuildDialog.setContentPane(freeBuildFrame.getContentPane());
-        freeBuildDialog.setSize(freeBuildFrame.getSize());
-        freeBuildDialog.setLocationRelativeTo(this);
-        freeBuildDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        freeBuildDialog.addWindowListener(new java.awt.event.WindowAdapter() {
+        gameLauncher(freeBuildDialog, freeBuildFrame.getContentPane(), freeBuildFrame.getSize());
+    }
+
+    private void gameLauncher(JDialog dialog, Container contentPane, Dimension size) {
+        dialog.setContentPane(contentPane);
+        dialog.setSize(size);
+        dialog.setLocationRelativeTo(this);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosed(java.awt.event.WindowEvent windowEvent) {
                 hideFrozenOverlay();
             }
         });
-        freeBuildDialog.setVisible(true);
+        dialog.setVisible(true);
     }
-    
+
     private void launchPrefixMatcher() {
         showFrozenOverlay();
 
         JDialog prefixDialog = new JDialog(this, "WordCrafter - Mode préfixe-matcher", true);
         PrefixMatcherFrame prefixMatcherFrame = new PrefixMatcherFrame();
-        prefixDialog.setContentPane(prefixMatcherFrame.getContentPane());
-        prefixDialog.setSize(prefixMatcherFrame.getSize());
-        prefixDialog.setLocationRelativeTo(this);
-        prefixDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        prefixDialog.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosed(java.awt.event.WindowEvent windowEvent) {
-                hideFrozenOverlay();
-            }
-        });
-        prefixDialog.setVisible(true);
+        gameLauncher(prefixDialog, prefixMatcherFrame.getContentPane(), prefixMatcherFrame.getSize());
     }
     
     private void launchEditor() {
@@ -234,17 +218,7 @@ public class MainMenuFrame extends JFrame {
 
         JDialog editorDialog = new JDialog(this, "WordCrafter - Mode Éditeur", true);
         EditorFrame editorFrame = new EditorFrame();
-        editorDialog.setContentPane(editorFrame.getContentPane());
-        editorDialog.setSize(editorFrame.getSize());
-        editorDialog.setLocationRelativeTo(this);
-        editorDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        editorDialog.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosed(java.awt.event.WindowEvent windowEvent) {
-                hideFrozenOverlay();
-            }
-        });
-        editorDialog.setVisible(true);
+        gameLauncher(editorDialog, editorFrame.getContentPane(), editorFrame.getSize());
     }
     
     private void showSettings() {

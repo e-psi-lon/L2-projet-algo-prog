@@ -7,9 +7,7 @@ import java.awt.*;
  * Prefix matcher mode frame - SPOOFED/STUB implementation.
  * This mode is not yet fully implemented.
  */
-public class PrefixMatcherFrame extends JFrame {
-    private static final Color PASTEL_PINK = new Color(255, 209, 220);
-    private static final Color LIGHT_CLOUD = new Color(255, 240, 245);
+public class PrefixMatcherFrame extends GameFrame {
 
     public PrefixMatcherFrame() {
         setTitle("WordCrafter - Mode préfixe-matcher");

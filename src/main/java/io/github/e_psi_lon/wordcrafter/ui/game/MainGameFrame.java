@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Main game mode - morpheme grid that can be combined to make words
  */
-public class MainGameFrame extends JFrame {
+public class MainGameFrame extends GameFrame {
     private final User currentUser;
     private List<Morpheme> availableMorphemes;
     private final List<Morpheme> selectedMorphemes;
@@ -27,12 +27,6 @@ public class MainGameFrame extends JFrame {
     private JLabel scoreLabel;
     private JList<String> constructedWordsList;
     private DefaultListModel<String> constructedWordsModel;
-
-    private static final Color PASTEL_PINK = new Color(255, 209, 220);
-    private static final Color LIGHT_CLOUD = new Color(255, 240, 245);
-    private static final Color BUTTON_COLOR = new Color(255, 182, 193);
-    private static final Color MORPHEME_COLOR = new Color(255, 228, 225);
-    private static final Color SELECTED_COLOR = new Color(255, 192, 203);
 
     public MainGameFrame(User user) {
         this.currentUser = user;

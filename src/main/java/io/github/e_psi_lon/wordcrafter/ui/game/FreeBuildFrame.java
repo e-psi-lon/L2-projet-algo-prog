@@ -7,9 +7,7 @@ import java.awt.*;
  * Free build mode frame - SPOOFED/STUB implementation.
  * This mode is not yet fully implemented.
  */
-public class FreeBuildFrame extends JFrame {
-    private static final Color LIGHT_CLOUD = new Color(255, 240, 245);
-    
+public class FreeBuildFrame extends GameFrame {
     public FreeBuildFrame() {
         setTitle("WordCrafter - Mode construction libre");
         setSize(600, 400);
