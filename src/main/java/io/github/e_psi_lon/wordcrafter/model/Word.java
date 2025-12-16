@@ -8,8 +8,9 @@ import java.util.List;
  */
 public record Word(int id, String text, List<Integer> morphemeIds, int points) implements DatabaseEntity {
 
+    @Override
     public int getId() {
-        return id();
+        return id;
     }
 
     @Override

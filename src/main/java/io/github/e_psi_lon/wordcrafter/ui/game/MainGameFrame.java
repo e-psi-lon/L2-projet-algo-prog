@@ -1,26 +1,27 @@
 package io.github.e_psi_lon.wordcrafter.ui.game;
 
-import io.github.e_psi_lon.wordcrafter.database.DatabaseManager;
+import io.github.e_psi_lon.wordcrafter.controller.GameController;
 import io.github.e_psi_lon.wordcrafter.model.Morpheme;
-import io.github.e_psi_lon.wordcrafter.model.Player;
 import io.github.e_psi_lon.wordcrafter.model.User;
 import io.github.e_psi_lon.wordcrafter.model.Word;
+import io.github.e_psi_lon.wordcrafter.service.GameStateListener;
+import io.github.e_psi_lon.wordcrafter.service.GameStateManager;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Main game mode - morpheme grid that can be combined to make words
  */
-public class MainGameFrame extends GameFrame {
+public class MainGameFrame extends GameFrame implements GameStateListener {
     private final User currentUser;
+    private final GameController gameController;
+    private final GameStateManager gameStateManager;
     private List<Morpheme> availableMorphemes;
-    private final List<Morpheme> selectedMorphemes;
-    private final List<Word> constructedWords;
+    private JButton[] morphemeButtons;
 
     private JPanel gridPanel;
     private JPanel constructedWordPanel;
@@ -28,10 +29,13 @@ public class MainGameFrame extends GameFrame {
     private JList<String> constructedWordsList;
     private DefaultListModel<String> constructedWordsModel;
 
-    public MainGameFrame(User user) {
+    public MainGameFrame(User user, GameController gameController, GameStateManager gameStateManager) {
         this.currentUser = user;
-        this.selectedMorphemes = new ArrayList<>();
-        this.constructedWords = new ArrayList<>();
+        this.gameController = gameController;
+        this.gameStateManager = gameStateManager;
+
+        // Register as a listener for game state changes
+        gameStateManager.addListener(this);
 
         setTitle("WordCrafter - Mode de jeu principal");
         setSize(800, 600);
@@ -43,7 +47,7 @@ public class MainGameFrame extends GameFrame {
     }
 
     private void loadMorphemes() {
-        availableMorphemes = DatabaseManager.getInstance().getAllMorphemes();
+        availableMorphemes = gameController.getAvailableMorphemes();
     }
 
     private void initComponents() {
@@ -62,18 +66,19 @@ public class MainGameFrame extends GameFrame {
         topPanel.add(constructedWordPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = createButtonPanel();
-
         topPanel.add(buttonPanel, BorderLayout.SOUTH);
-
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
         // Central panel - morphemes grid
         gridPanel = new JPanel(new GridLayout(3, 3, 10, 10));
         gridPanel.setBackground(LIGHT_CLOUD);
 
-        for (int i = 0; i < Math.min(9, availableMorphemes.size()); i++) {
+        morphemeButtons = new JButton[Math.min(9, availableMorphemes.size())];
+
+        for (int i = 0; i < morphemeButtons.length; i++) {
             Morpheme morpheme = availableMorphemes.get(i);
-            JButton morphemeButton = createMorphemeButton(morpheme);
+            JButton morphemeButton = createMorphemeButton(morpheme, i);
+            morphemeButtons[i] = morphemeButton;
             gridPanel.add(morphemeButton);
         }
 
@@ -84,7 +89,7 @@ public class MainGameFrame extends GameFrame {
         rightPanel.setBackground(LIGHT_CLOUD);
         rightPanel.setPreferredSize(new Dimension(200, 0));
 
-        scoreLabel = new JLabel("Score: " + (currentUser instanceof Player ? ((Player) currentUser).getScore() : 0));
+        scoreLabel = new JLabel("Score: " + gameStateManager.getCurrentScore());
         scoreLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
         scoreLabel.setHorizontalAlignment(SwingConstants.CENTER);
         rightPanel.add(scoreLabel, BorderLayout.NORTH);
@@ -119,12 +124,12 @@ public class MainGameFrame extends GameFrame {
         JButton clearButton = new JButton("Effacer");
         clearButton.setBackground(BUTTON_COLOR);
         clearButton.setForeground(Color.WHITE);
-        clearButton.addActionListener(e -> clearSelection());
+        clearButton.addActionListener(e -> gameController.handleClearSelection());
         buttonPanel.add(clearButton);
         return buttonPanel;
     }
 
-    private JButton createMorphemeButton(Morpheme morpheme) {
+    private JButton createMorphemeButton(Morpheme morpheme, int index) {
         JButton button = new JButton("<html><center>" + morpheme.text() + "<br><small>" +
                                      morpheme.definition() + "</small></center></html>");
         button.setBackground(MORPHEME_COLOR);
@@ -133,14 +138,9 @@ public class MainGameFrame extends GameFrame {
         button.setBorder(BorderFactory.createLineBorder(PASTEL_PINK, 2));
 
         button.addActionListener(e -> {
-            if (selectedMorphemes.contains(morpheme)) {
-                selectedMorphemes.remove(morpheme);
-                button.setBackground(MORPHEME_COLOR);
-            } else {
-                selectedMorphemes.add(morpheme);
-                button.setBackground(SELECTED_COLOR);
-            }
-            updateConstructedWordDisplay();
+            gameController.handleMorphemeToggle(morpheme);
+            // Update button appearance based on selection state
+            button.setBackground(gameStateManager.isMorphemeSelected(morpheme) ? SELECTED_COLOR : MORPHEME_COLOR);
         });
 
         return button;
@@ -148,28 +148,27 @@ public class MainGameFrame extends GameFrame {
 
     private void updateConstructedWordDisplay() {
         constructedWordPanel.removeAll();
+        List<Morpheme> selected = gameStateManager.getSelectedMorphemes();
 
-        for (int i = 0; i < selectedMorphemes.size(); i++) {
-            Morpheme morpheme = selectedMorphemes.get(i);
+        for (int i = 0; i < selected.size(); i++) {
+            Morpheme morpheme = selected.get(i);
             JLabel label = new JLabel(morpheme.text());
             label.setFont(new Font("SansSerif", Font.BOLD, 18));
             label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
             // Make the label clickable to delete the morpheme
-            final int index = i;
+            final Morpheme toRemove = morpheme;
             label.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    selectedMorphemes.remove(index);
-                    updateConstructedWordDisplay();
-                    updateGridButtons();
+                    gameController.handleMorphemeToggle(toRemove);
                 }
             });
             label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
             constructedWordPanel.add(label);
 
-            if (i < selectedMorphemes.size() - 1) {
+            if (i < selected.size() - 1) {
                 constructedWordPanel.add(new JLabel(" + "));
             }
         }
@@ -179,68 +178,63 @@ public class MainGameFrame extends GameFrame {
     }
 
     private void updateGridButtons() {
-        Component[] components = gridPanel.getComponents();
-        for (Component comp : components) {
-            if (comp instanceof JButton button) {
-                String buttonText = button.getText().replaceAll("<[^>]*>", "").trim();
-
-                boolean isSelected = selectedMorphemes.stream()
-                    .anyMatch(m -> buttonText.contains(m.text()));
-
-                button.setBackground(isSelected ? SELECTED_COLOR : MORPHEME_COLOR);
-            }
+        for (int i = 0; i < morphemeButtons.length; i++) {
+            JButton button = morphemeButtons[i];
+            Morpheme morpheme = availableMorphemes.get(i);
+            button.setBackground(gameStateManager.isMorphemeSelected(morpheme) ? SELECTED_COLOR : MORPHEME_COLOR);
         }
     }
 
     private void checkWord() {
-        if (selectedMorphemes.isEmpty()) {
+        List<Morpheme> selected = gameStateManager.getSelectedMorphemes();
+        if (selected.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Veuillez d'abord sélectionner des morphèmes !",
                                         "Aucune sélection", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // Build the text of the word
-        StringBuilder wordText = new StringBuilder();
-        for (Morpheme m : selectedMorphemes) {
-            wordText.append(m.text());
-        }
-
-        // Get IDs of the morphemes
-        List<Integer> morphemeIds = selectedMorphemes.stream()
-            .map(Morpheme::id)
-            .toList();
-
-        // Validate against the database
-        Word validWord = DatabaseManager.getInstance().validateWord(wordText.toString(), morphemeIds);
+        // Use controller to validate word - handles all business logic
+        Word validWord = gameController.handleWordVerification();
 
         if (validWord != null) {
             // The word is valid
-            constructedWords.add(validWord);
             constructedWordsModel.addElement(validWord.text() + " (" + validWord.points() + " pts)");
-
-            // Update the score
-            int currentScore = currentUser instanceof Player ? ((Player) currentUser).getScore() : 0;
-            int newScore = currentScore + validWord.points();
-            DatabaseManager.getInstance().updateUserScore(currentUser.getId(), validWord.points());
-            DatabaseManager.getInstance().addPlayerWord(currentUser.getId(), validWord.id());
-            scoreLabel.setText("Score: " + newScore);
 
             JOptionPane.showMessageDialog(this,
                 "Mot valide ! Vous avez gagné " + validWord.points() + " points !",
                 "Succès", JOptionPane.INFORMATION_MESSAGE);
 
-            clearSelection();
+            gameController.handleClearSelection();
         } else {
+            StringBuilder wordText = new StringBuilder();
+            for (Morpheme m : selected) {
+                wordText.append(m.text());
+            }
             JOptionPane.showMessageDialog(this,
                 "Mot invalide : " + wordText,
                 "Invalide", JOptionPane.ERROR_MESSAGE);
+
+            // Clear selection when word is invalid
+            gameController.handleClearSelection();
         }
     }
 
-    private void clearSelection() {
-        selectedMorphemes.clear();
-        updateConstructedWordDisplay();
-        updateGridButtons();
+    @Override
+    public void onGameStateChanged(GameStateManager.GameStateEvent event) {
+        switch (event.type()) {
+            case MORPHEME_SELECTED:
+            case MORPHEME_DESELECTED, SELECTION_CLEARED, ROUND_RESET:
+                updateConstructedWordDisplay();
+                updateGridButtons();
+                break;
+            case WORD_CONSTRUCTED:
+                updateGridButtons();
+                scoreLabel.setText("Score: " + gameStateManager.getCurrentScore());
+                break;
+            case SCORE_UPDATED:
+                scoreLabel.setText("Score: " + gameStateManager.getCurrentScore());
+                break;
+        }
     }
 }
 

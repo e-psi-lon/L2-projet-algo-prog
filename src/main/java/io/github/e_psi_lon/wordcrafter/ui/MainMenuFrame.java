@@ -1,8 +1,10 @@
 package io.github.e_psi_lon.wordcrafter.ui;
 
+import io.github.e_psi_lon.wordcrafter.controller.GameController;
 import io.github.e_psi_lon.wordcrafter.model.Admin;
 import io.github.e_psi_lon.wordcrafter.model.Player;
 import io.github.e_psi_lon.wordcrafter.model.User;
+import io.github.e_psi_lon.wordcrafter.service.ServiceFactory;
 import io.github.e_psi_lon.wordcrafter.ui.game.MainGameFrame;
 import io.github.e_psi_lon.wordcrafter.ui.game.FreeBuildFrame;
 import io.github.e_psi_lon.wordcrafter.ui.game.PrefixMatcherFrame;
@@ -19,13 +21,17 @@ public class MainMenuFrame extends JFrame {
     private JLabel userLabel;
     private JButton editorButton;
     private JPanel glassPanelOverlay;
+    private final ServiceFactory serviceFactory;
+
+    // ...existing code...
 
     // Pastel pink theme colors
     private static final Color PASTEL_PINK = new Color(255, 209, 220);
     private static final Color LIGHT_CLOUD = new Color(255, 240, 245);
     private static final Color BUTTON_COLOR = new Color(255, 182, 193);
 
-    public MainMenuFrame() {
+    public MainMenuFrame(ServiceFactory serviceFactory) {
+        this.serviceFactory = serviceFactory;
         setTitle("WordCrafter");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(600, 500);
@@ -171,11 +177,20 @@ public class MainMenuFrame extends JFrame {
             JOptionPane.showMessageDialog(this, "Veuillez d'abord vous connecter !", "Connexion requise", JOptionPane.WARNING_MESSAGE);
             return;
         }
+        if (!(currentUser instanceof Player)) {
+            JOptionPane.showMessageDialog(this, "Seuls les joueurs peuvent jouer !", "Accès refusé", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         showFrozenOverlay();
+
+        // Create game controller with dependency injection
+        Player player = (Player) currentUser;
+        GameController gameController = serviceFactory.createGameController(player);
 
         // Create as a modal dialog instead of a frame
         JDialog gameDialog = new JDialog(this, "WordCrafter - Mode de jeu principal", true);
-        MainGameFrame gameFrame = new MainGameFrame(currentUser);
+        MainGameFrame gameFrame = new MainGameFrame(currentUser, gameController, gameController.getGameStateManager());
         gameLauncher(gameDialog, gameFrame.getContentPane(), gameFrame.getSize());
     }
     
@@ -226,7 +241,7 @@ public class MainMenuFrame extends JFrame {
     }
 
     private void showLogin() {
-        LoginDialog loginDialog = new LoginDialog(this);
+        LoginDialog loginDialog = new LoginDialog(this, serviceFactory.createAuthController());
         loginDialog.setVisible(true);
 
         if (loginDialog.getAuthenticatedUser() != null) {

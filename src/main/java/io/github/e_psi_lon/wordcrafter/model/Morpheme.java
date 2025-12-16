@@ -7,8 +7,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public record Morpheme(int id, String text, String definition) implements DatabaseEntity {
 
+    @Override
     public int getId() {
-        return id();
+        return id;
     }
 
     @Override

@@ -1,24 +1,24 @@
 package io.github.e_psi_lon.wordcrafter.ui;
 
-import io.github.e_psi_lon.wordcrafter.database.DatabaseManager;
+import io.github.e_psi_lon.wordcrafter.controller.AuthController;
 import io.github.e_psi_lon.wordcrafter.model.User;
 
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * Login/registration dialog.
- */
+
 public class LoginDialog extends JDialog {
     private User authenticatedUser;
     private JTextField usernameField;
     private JPasswordField passwordField;
+    private final AuthController authController;
 
     private static final Color LIGHT_CLOUD = new Color(255, 240, 245);
     private static final Color BUTTON_COLOR = new Color(255, 182, 193);
 
-    public LoginDialog(Frame parent) {
+    public LoginDialog(Frame parent, AuthController authController) {
         super(parent, "Se connecter/S'inscrire", true);
+        this.authController = authController;
         setSize(400, 250);
         setLocationRelativeTo(parent);
 
@@ -92,38 +92,34 @@ public class LoginDialog extends JDialog {
     private void login() {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());
-        
+
         if (username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Veuillez remplir tous les champs.", "Erreur", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
-        authenticatedUser = DatabaseManager.getInstance().authenticateUser(username, password);
-        
+        authenticatedUser = authController.handleLogin(username, password);
+
         if (authenticatedUser != null) {
             JOptionPane.showMessageDialog(this, "Connexion réussie !", "Succès", JOptionPane.INFORMATION_MESSAGE);
             dispose();
-        } else {
+        } else
             JOptionPane.showMessageDialog(this, "Nom d'utilisateur ou mot de passe invalide.", "Erreur", JOptionPane.ERROR_MESSAGE);
-        }
     }
-    
+
     private void register() {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());
-        
+
         if (username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Veuillez remplir tous les champs.", "Erreur", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
-        boolean success = DatabaseManager.getInstance().createPlayer(username, password);
+        boolean success = authController.handlePlayerRegistration(username, password);
 
-        if (success) {
+        if (success)
             JOptionPane.showMessageDialog(this, "Inscription réussie ! Vous pouvez maintenant vous connecter.", "Succès", JOptionPane.INFORMATION_MESSAGE);
-        } else {
+        else
             JOptionPane.showMessageDialog(this, "Ce nom d'utilisateur existe déjà.", "Erreur", JOptionPane.ERROR_MESSAGE);
-        }
     }
 
     public User getAuthenticatedUser() {

@@ -1,6 +1,6 @@
 package io.github.e_psi_lon.wordcrafter;
 
-import io.github.e_psi_lon.wordcrafter.database.DatabaseManager;
+import io.github.e_psi_lon.wordcrafter.service.ServiceFactory;
 import io.github.e_psi_lon.wordcrafter.ui.MainMenuFrame;
 
 import javax.swing.*;
@@ -10,8 +10,8 @@ import javax.swing.*;
  */
 public class WordCrafterApp {
     public static void main(String[] args) {
-        // Initialize database
-        DatabaseManager.getInstance().initialize();
+        // Initialize services and database
+        ServiceFactory serviceFactory = ServiceFactory.initialize();
 
         // Set look and feel for better UI
         try {
@@ -20,9 +20,9 @@ public class WordCrafterApp {
             e.printStackTrace();
         }
 
-        // Launch the main menu
+        // Launch the main menu with dependency injection
         SwingUtilities.invokeLater(() -> {
-            MainMenuFrame mainMenu = new MainMenuFrame();
+            MainMenuFrame mainMenu = new MainMenuFrame(serviceFactory);
             mainMenu.setVisible(true);
         });
     }
