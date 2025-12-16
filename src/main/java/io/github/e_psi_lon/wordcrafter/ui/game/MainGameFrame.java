@@ -200,8 +200,13 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
             // The word is valid
             constructedWordsModel.addElement(validWord.text() + " (" + validWord.points() + " pts)");
 
+            String message = "Mot valide ! Vous avez gagné " + validWord.points() + " points !\n\n";
+            if (validWord.definition() != null && !validWord.definition().isEmpty()) {
+                message += "Définition: " + validWord.definition();
+            }
+
             JOptionPane.showMessageDialog(this,
-                "Mot valide ! Vous avez gagné " + validWord.points() + " points !",
+                message,
                 "Succès", JOptionPane.INFORMATION_MESSAGE);
 
             gameController.handleClearSelection();

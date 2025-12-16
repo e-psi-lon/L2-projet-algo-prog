@@ -2,6 +2,9 @@ package io.github.e_psi_lon.wordcrafter.database;
 
 import io.github.e_psi_lon.wordcrafter.model.*;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +95,8 @@ public class DatabaseManager {
                 CREATE TABLE IF NOT EXISTS words (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     text VARCHAR(100) UNIQUE NOT NULL,
-                    points INT NOT NULL
+                    points INT NOT NULL,
+                    definition TEXT NOT NULL DEFAULT ''
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
                 """;
 
@@ -140,7 +144,8 @@ public class DatabaseManager {
                 CREATE TABLE IF NOT EXISTS words (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     text VARCHAR(100) UNIQUE NOT NULL,
-                    points INTEGER NOT NULL
+                    points INTEGER NOT NULL,
+                    definition TEXT NOT NULL DEFAULT ''
                 )
                 """;
 
@@ -218,13 +223,14 @@ public class DatabaseManager {
         }
 
         // Insert some sample words (French) using proper junction table
-        String insertWord = "INSERT INTO words (text, points) VALUES (?, ?)";
+        String insertWord = "INSERT INTO words (text, points, definition) VALUES (?, ?, ?)";
         String insertWordMorpheme = "INSERT INTO word_morphemes (word_id, morpheme_id, position) VALUES (?, ?, ?)";
 
         try (PreparedStatement wordStmt = connection.prepareStatement(insertWord, Statement.RETURN_GENERATED_KEYS);
              PreparedStatement morphemeStmt = connection.prepareStatement(insertWordMorpheme)) {
             wordStmt.setString(1, "refaire");
             wordStmt.setInt(2, 5);
+            wordStmt.setString(3, "Faire de nouveau, recommencer une action");
             wordStmt.executeUpdate();
 
             int wordId = getGeneratedKey(wordStmt);
@@ -241,6 +247,7 @@ public class DatabaseManager {
             // Word: prévoir = pré (id 3) + voir (id 6)
             wordStmt.setString(1, "prévoir");
             wordStmt.setInt(2, 5);
+            wordStmt.setString(3, "Anticiper ou prévoir ce qui va se passer");
             wordStmt.executeUpdate();
 
             wordId = getGeneratedKey(wordStmt);
@@ -257,32 +264,84 @@ public class DatabaseManager {
     }
 
     private String hashPassword(String password) {
-        // Simple hash for now - in production use proper hashing like BCrypt
-        return Integer.toString(password.hashCode());
+        try {
+            SecureRandom random = new SecureRandom();
+            byte[] salt = new byte[16];
+            random.nextBytes(salt);
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(salt);
+            byte[] hashedPassword = md.digest(password.getBytes());
+            byte[] saltAndHash = new byte[salt.length + hashedPassword.length];
+            System.arraycopy(salt, 0, saltAndHash, 0, salt.length);
+            System.arraycopy(hashedPassword, 0, saltAndHash, salt.length, hashedPassword.length);
+            return bytesToHex(saltAndHash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 algorithm not available", e);
+        }
+    }
+
+    private boolean verifyPassword(String password, String hash) {
+        try {
+            byte[] saltAndHash = hexToBytes(hash);
+            byte[] salt = new byte[16];
+            System.arraycopy(saltAndHash, 0, salt, 0, 16);
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(salt);
+            byte[] hashedPassword = md.digest(password.getBytes());
+            byte[] storedHash = new byte[32];
+            System.arraycopy(saltAndHash, 16, storedHash, 0, 32);
+            for (int i = 0; i < hashedPassword.length; i++)
+                if (hashedPassword[i] != storedHash[i])
+                    return false;
+            return true;
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 algorithm not available", e);
+        }
+    }
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) hexString.append('0');
+            hexString.append(hex);
+        }
+        return hexString.toString();
+    }
+
+    private byte[] hexToBytes(String hex) {
+        byte[] bytes = new byte[hex.length() / 2];
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = (byte) Integer.parseInt(hex.substring(i * 2, i * 2 + 2), 16);
+        }
+        return bytes;
     }
 
     public User authenticateUser(String username, String password) {
-        String query = "SELECT * FROM users WHERE username = ? AND password_hash = ?";
+        String query = "SELECT * FROM users WHERE username = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setString(1, username);
-            pstmt.setString(2, hashPassword(password));
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                if (rs.getString("role").equals("ADMIN")) {
-                    return new Admin(
-                        rs.getInt("id"),
-                        rs.getString("username"),
-                        rs.getString("password_hash")
-                    );
-                }
-                else {
-                    return new Player(
-                        rs.getInt("id"),
-                        rs.getString("username"),
-                        rs.getString("password_hash"),
-                        rs.getInt("score")
-                    );
+                // Verify password using salt from stored hash
+                String storedHash = rs.getString("password_hash");
+                if (verifyPassword(password, storedHash)) {
+                    if (rs.getString("role").equals("ADMIN")) {
+                        return new Admin(
+                            rs.getInt("id"),
+                            rs.getString("username"),
+                            storedHash
+                        );
+                    }
+                    else {
+                        return new Player(
+                            rs.getInt("id"),
+                            rs.getString("username"),
+                            storedHash,
+                            rs.getInt("score")
+                        );
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -353,6 +412,7 @@ public class DatabaseManager {
                 int wordId = rs.getInt("id");
                 String wordText = rs.getString("text");
                 int points = rs.getInt("points");
+                String definition = rs.getString("definition");
 
                 // Get the morphemes for this word in order
                 String morphemesQuery = "SELECT morpheme_id FROM word_morphemes WHERE word_id = ? ORDER BY position";
@@ -369,7 +429,7 @@ public class DatabaseManager {
 
                 // Check if the morpheme lists match
                 if (wordMorphemeIds.equals(morphemeIds)) {
-                    return new Word(wordId, wordText, wordMorphemeIds, points);
+                    return new Word(wordId, wordText, wordMorphemeIds, points, definition);
                 }
             }
         } catch (SQLException e) {
@@ -417,13 +477,14 @@ public class DatabaseManager {
         }
     }
 
-    public void addWord(String text, List<Integer> morphemeIds, int points) {
-        String insertWordQuery = "INSERT INTO words (text, points) VALUES (?, ?)";
+    public void addWord(String text, List<Integer> morphemeIds, int points, String definition) {
+        String insertWordQuery = "INSERT INTO words (text, points, definition) VALUES (?, ?, ?)";
         String insertWordMorphemeQuery = "INSERT INTO word_morphemes (word_id, morpheme_id, position) VALUES (?, ?, ?)";
 
         try (PreparedStatement wordStmt = connection.prepareStatement(insertWordQuery, Statement.RETURN_GENERATED_KEYS)) {
             wordStmt.setString(1, text);
             wordStmt.setInt(2, points);
+            wordStmt.setString(3, definition);
             wordStmt.executeUpdate();
 
             ResultSet rs = wordStmt.getGeneratedKeys();

@@ -29,8 +29,8 @@ public class GameService {
         databaseManager.addMorpheme(text, definition);
     }
 
-    public void addWord(String text, List<Integer> morphemeIds, int points) {
-        databaseManager.addWord(text, morphemeIds, points);
+    public void addWord(String text, List<Integer> morphemeIds, int points, String definition) {
+        databaseManager.addWord(text, morphemeIds, points, definition);
     }
 
 

@@ -15,25 +15,12 @@ public class EditorController {
         this.gameService = gameService;
     }
 
-    /**
-     * Handles adding a new morpheme to the game database.
-     *
-     * @param text the morpheme text
-     * @param definition the French definition
-     */
     public void handleAddMorpheme(String text, String definition) {
         gameService.addMorpheme(text, definition);
     }
 
-    /**
-     * Handles adding a new word to the game database.
-     *
-     * @param text the word text
-     * @param morphemeIds the IDs of morphemes that compose this word (in order)
-     * @param points the points awarded for constructing this word
-     */
-    public void handleAddWord(String text, List<Integer> morphemeIds, int points) {
-        gameService.addWord(text, morphemeIds, points);
+    public void handleAddWord(String text, List<Integer> morphemeIds, int points, String definition) {
+        gameService.addWord(text, morphemeIds, points, definition);
     }
 }
 
