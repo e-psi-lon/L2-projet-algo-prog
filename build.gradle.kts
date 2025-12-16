@@ -14,6 +14,7 @@ dependencies {
     // Database - SQLite for development, MySQL for final
     implementation("org.xerial:sqlite-jdbc:3.51.0.0")
     implementation("com.mysql:mysql-connector-j:9.5.0")
+    implementation("org.jetbrains:annotations:15.0")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")

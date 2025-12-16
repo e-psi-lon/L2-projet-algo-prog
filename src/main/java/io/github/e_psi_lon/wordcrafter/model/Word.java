@@ -1,5 +1,6 @@
 package io.github.e_psi_lon.wordcrafter.model;
 
+import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
@@ -12,6 +13,7 @@ public record Word(int id, String text, List<Integer> morphemeIds, int points) i
     }
 
     @Override
+    @NotNull
     public String toString() {
         return text;
     }
