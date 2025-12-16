@@ -400,6 +400,40 @@ public class DatabaseManager {
         return morphemes;
     }
 
+    public List<Word> getAllWords() {
+        List<Word> words = new ArrayList<>();
+        String query = "SELECT * FROM words";
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                int wordId = rs.getInt("id");
+                String text = rs.getString("text");
+                int points = rs.getInt("points");
+                String definition = rs.getString("definition");
+
+                // Get the morphemes for this word in order
+                String morphemesQuery = "SELECT morpheme_id FROM word_morphemes WHERE word_id = ? ORDER BY position";
+                List<Integer> morphemeIds = new ArrayList<>();
+
+                try (PreparedStatement morphStmt = connection.prepareStatement(morphemesQuery)) {
+                    morphStmt.setInt(1, wordId);
+                    ResultSet morphRs = morphStmt.executeQuery();
+
+                    while (morphRs.next()) {
+                        morphemeIds.add(morphRs.getInt("morpheme_id"));
+                    }
+                }
+
+                words.add(new Word(wordId, text, morphemeIds, points, definition));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return words;
+    }
+
     public Word validateWord(String text, List<Integer> morphemeIds) {
         // First, find the word by text
         String wordQuery = "SELECT * FROM words WHERE text = ?";
@@ -500,6 +534,38 @@ public class DatabaseManager {
                     }
                 }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updatePassword(int userId, String newPassword) {
+        String query = "UPDATE users SET password_hash = ? WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, hashPassword(newPassword));
+            pstmt.setInt(2, userId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateUsername(int userId, String newUsername) {
+        String query = "UPDATE users SET username = ? WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, newUsername);
+            pstmt.setInt(2, userId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteUser(int userId) {
+        String query = "DELETE FROM users WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setInt(1, userId);
+            pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }

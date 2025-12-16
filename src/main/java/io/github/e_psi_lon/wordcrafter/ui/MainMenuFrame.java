@@ -18,12 +18,13 @@ import java.awt.*;
 public class MainMenuFrame extends JFrame {
     private User currentUser;
     private JPanel mainPanel;
-    private JLabel userLabel;
+    private JLabel scoreLabel;
+    private JLabel welcomeLabel;
     private JButton editorButton;
+    private JButton loginButton;
+    private JButton disconnectButton;
     private JPanel glassPanelOverlay;
     private final ServiceFactory serviceFactory;
-
-    // ...existing code...
 
     // Pastel pink theme colors
     private static final Color PASTEL_PINK = new Color(255, 209, 220);
@@ -34,7 +35,7 @@ public class MainMenuFrame extends JFrame {
         this.serviceFactory = serviceFactory;
         setTitle("WordCrafter");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600, 500);
+        setSize(600, 600);
         setLocationRelativeTo(null);
 
         initComponents();
@@ -42,22 +43,35 @@ public class MainMenuFrame extends JFrame {
     }
 
     private void initComponents() {
+        // Create a top panel with BorderLayout for score (right only)
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(LIGHT_CLOUD);
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+
+        // Score label on the right
+        scoreLabel = new JLabel("");
+        scoreLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        scoreLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        topPanel.add(scoreLabel, BorderLayout.EAST);
+
+        // Main content panel
         mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
 
-        // Title
+        // Title (centered)
         JLabel titleLabel = new JLabel("WordCrafter");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 48));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         titleLabel.setForeground(new Color(199, 21, 133)); // Medium violet red
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(titleLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
 
-        // User info label
-        userLabel = new JLabel("Non connecté");
-        userLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(userLabel);
+        // Welcome label
+        welcomeLabel = new JLabel("Non connecté");
+        welcomeLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        mainPanel.add(welcomeLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
         // Game mode buttons
@@ -89,16 +103,28 @@ public class MainMenuFrame extends JFrame {
         mainPanel.add(settingsButton);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
 
-        JButton loginButton = createStyledButton("Connection / Compte");
+        // Login button (will be replaced with panel when logged in)
+        loginButton = createStyledButton("Connexion");
         loginButton.addActionListener(e -> showLogin());
         mainPanel.add(loginButton);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+
+        // Disconnect button (created but not added initially)
+        disconnectButton = createStyledButton("Déconnecter");
+        disconnectButton.setBackground(new Color(220, 100, 100));
+        disconnectButton.addActionListener(e -> logout());
 
         JButton quitButton = createStyledButton("Quitter");
         quitButton.addActionListener(e -> System.exit(0));
         mainPanel.add(quitButton);
 
-        add(mainPanel);
+        // Create outer container with BorderLayout
+        JPanel outerPanel = new JPanel(new BorderLayout());
+        outerPanel.setBackground(LIGHT_CLOUD);
+        outerPanel.add(topPanel, BorderLayout.NORTH);
+        outerPanel.add(mainPanel, BorderLayout.CENTER);
+
+        add(outerPanel);
 
         // Setup glass pane overlay for frozen state
         setupGlassPane();
@@ -154,30 +180,78 @@ public class MainMenuFrame extends JFrame {
     }
 
     private void updateUI() {
-        // Update user label with current user info
-        if (currentUser != null) {
-            String scoreText = "";
-            if (currentUser instanceof Player player) {
-                scoreText = " (Score: " + player.getScore() + ")";
-            }
-            userLabel.setText("Bienvenue, " + currentUser.getUsername() + scoreText);
-        } else {
-            userLabel.setText("Non connecté");
-        }
+        // Update score label in top right corner
+        if (currentUser != null && currentUser instanceof Player player)
+            scoreLabel.setText("Score: " + player.getScore());
+        else scoreLabel.setText("");
 
-        // Show/hide editor button based on user role
+        if (currentUser != null)
+            welcomeLabel.setText("Bienvenue, " + currentUser.getUsername());
+        else welcomeLabel.setText("Non connecté");
+
+        if (currentUser != null) {
+            loginButton.setText("Compte");
+            Component[] components = mainPanel.getComponents();
+            int loginButtonIndex = -1;
+
+            for (int i = 0; i < components.length; i++) {
+                if (components[i] == loginButton) {
+                    loginButtonIndex = i;
+                    break;
+                }
+            }
+
+            if (loginButtonIndex != -1) {
+                JPanel loginPanel = new JPanel(new GridLayout(1, 2, 5, 0));
+                loginPanel.setBackground(LIGHT_CLOUD);
+                loginPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                loginPanel.setMaximumSize(new Dimension(300, 40));
+
+                loginButton.setMaximumSize(null);
+                loginButton.setText("Compte");
+                loginPanel.add(loginButton);
+
+                disconnectButton.setMaximumSize(null);
+                loginPanel.add(disconnectButton);
+
+                mainPanel.remove(loginButtonIndex);
+                mainPanel.add(loginPanel, loginButtonIndex);
+            }
+        } else {
+            loginButton.setText("Connexion");
+            loginButton.setMaximumSize(new Dimension(300, 40));
+            Component[] components = mainPanel.getComponents();
+            for (int i = 0; i < components.length; i++) {
+                if (components[i] instanceof JPanel panel && i > 0) {
+                    if (panel.getComponentCount() == 3) {
+                        boolean hasLoginButton = false;
+                        for (Component comp : panel.getComponents()) {
+                            if (comp == loginButton) {
+                                hasLoginButton = true;
+                                break;
+                            }
+                        }
+                        if (hasLoginButton) {
+                            mainPanel.remove(i);
+                            mainPanel.add(loginButton, i);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
         editorButton.setVisible(currentUser != null && currentUser instanceof Admin);
 
         revalidate();
         repaint();
     }
-    
+
     private void launchMainGame() {
         if (currentUser == null) {
             JOptionPane.showMessageDialog(this, "Veuillez d'abord vous connecter !", "Connexion requise", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        if (!(currentUser instanceof Player)) {
+        if (!(currentUser instanceof Player player)) {
             JOptionPane.showMessageDialog(this, "Seuls les joueurs peuvent jouer !", "Accès refusé", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -185,7 +259,6 @@ public class MainMenuFrame extends JFrame {
         showFrozenOverlay();
 
         // Create game controller with dependency injection
-        Player player = (Player) currentUser;
         GameController gameController = serviceFactory.createGameController(player);
 
         // Create as a modal dialog instead of a frame
@@ -195,10 +268,22 @@ public class MainMenuFrame extends JFrame {
     }
     
     private void launchFreeBuild() {
+        if (currentUser == null) {
+            JOptionPane.showMessageDialog(this, "Veuillez d'abord vous connecter !", "Connexion requise", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (!(currentUser instanceof Player player)) {
+            JOptionPane.showMessageDialog(this, "Seuls les joueurs peuvent jouer !", "Accès refusé", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         showFrozenOverlay();
 
+        // Create game controller with dependency injection
+        GameController gameController = serviceFactory.createGameController(player);
+
         JDialog freeBuildDialog = new JDialog(this, "WordCrafter - Mode construction libre", true);
-        FreeBuildFrame freeBuildFrame = new FreeBuildFrame();
+        FreeBuildFrame freeBuildFrame = new FreeBuildFrame(currentUser, gameController, gameController.getGameStateManager());
         gameLauncher(freeBuildDialog, freeBuildFrame.getContentPane(), freeBuildFrame.getSize());
     }
 
@@ -241,12 +326,22 @@ public class MainMenuFrame extends JFrame {
     }
 
     private void showLogin() {
-        LoginDialog loginDialog = new LoginDialog(this, serviceFactory.createAuthController());
-        loginDialog.setVisible(true);
+        if (currentUser != null) {
+            AccountSettingsFrame accountSettings = new AccountSettingsFrame(currentUser, serviceFactory.getAuthService(), this::logout);
+            accountSettings.setVisible(true);
+        } else {
+            LoginDialog loginDialog = new LoginDialog(this, serviceFactory.createAuthController());
+            loginDialog.setVisible(true);
 
-        if (loginDialog.getAuthenticatedUser() != null) {
-            setCurrentUser(loginDialog.getAuthenticatedUser());
+            if (loginDialog.getAuthenticatedUser() != null) {
+                setCurrentUser(loginDialog.getAuthenticatedUser());
+            }
         }
+    }
+
+    private void logout() {
+        currentUser = null;
+        updateUI();
     }
 }
 

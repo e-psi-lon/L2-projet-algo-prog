@@ -22,5 +22,17 @@ public class AuthService {
     public boolean createAdmin(String username, String password) {
         return databaseManager.createAdmin(username, password);
     }
+
+    public void updateUsername(int userId, String newUsername) {
+        databaseManager.updateUsername(userId, newUsername);
+    }
+
+    public void updatePassword(int userId, String newPassword) {
+        databaseManager.updatePassword(userId, newPassword);
+    }
+
+    public void deleteAccount(int userId) {
+        databaseManager.deleteUser(userId);
+    }
 }
 
