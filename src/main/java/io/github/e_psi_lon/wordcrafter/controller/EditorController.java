@@ -1,5 +1,7 @@
 package io.github.e_psi_lon.wordcrafter.controller;
 
+import io.github.e_psi_lon.wordcrafter.model.Morpheme;
+import io.github.e_psi_lon.wordcrafter.model.Word;
 import io.github.e_psi_lon.wordcrafter.service.GameService;
 
 import java.util.List;
@@ -21,6 +23,14 @@ public class EditorController {
 
     public void handleAddWord(String text, List<Integer> morphemeIds, int points, String definition) {
         gameService.addWord(text, morphemeIds, points, definition);
+    }
+
+    public List<Morpheme> getAllMorphemes() {
+        return gameService.getAllAvailableMorphemes();
+    }
+
+    public List<Word> getAllWords() {
+        return gameService.getAllAvailableWords();
     }
 }
 

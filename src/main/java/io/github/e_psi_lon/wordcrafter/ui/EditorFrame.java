@@ -1,6 +1,6 @@
 package io.github.e_psi_lon.wordcrafter.ui;
 
-import io.github.e_psi_lon.wordcrafter.database.DatabaseManager;
+import io.github.e_psi_lon.wordcrafter.controller.EditorController;
 import io.github.e_psi_lon.wordcrafter.model.Morpheme;
 import io.github.e_psi_lon.wordcrafter.model.Word;
 import org.jetbrains.annotations.NotNull;
@@ -18,21 +18,39 @@ import java.util.List;
 public class EditorFrame extends JFrame {
     private static final Color LIGHT_CLOUD = new Color(255, 240, 245);
     private static final Color BUTTON_COLOR = new Color(255, 182, 193);
-    private final List<Morpheme> allMorphemes;
-    private final List<Word> allWords;
+    private final EditorController editorController;
+    private List<Morpheme> allMorphemes;
+    private List<Word> allWords;
     private DefaultListModel<String> morphemeListModel;
     private DefaultListModel<String> wordListModel;
 
-    public EditorFrame() {
+    public EditorFrame(EditorController editorController) {
+        this.editorController = editorController;
         setTitle("WordCrafter - Mode Éditeur");
         setSize(1200, 700);
         setLocationRelativeTo(null);
 
         // Load data at startup
-        allMorphemes = DatabaseManager.getInstance().getAllMorphemes();
-        allWords = DatabaseManager.getInstance().getAllWords();
+        allMorphemes = editorController.getAllMorphemes();
+        allWords = editorController.getAllWords();
 
         initComponents();
+    }
+
+    /**
+     * Reload morphemes from database and update the display
+     */
+    private void reloadMorphemes() {
+        allMorphemes = editorController.getAllMorphemes();
+        updateMorphemeList("", morphemeListModel);
+    }
+
+    /**
+     * Reload words from database and update the display
+     */
+    private void reloadWords() {
+        allWords = editorController.getAllWords();
+        updateWordList("", wordListModel);
     }
 
     private void initComponents() {
@@ -109,12 +127,12 @@ public class EditorFrame extends JFrame {
             String text = morphemeTextField.getText().trim();
             String definition = definitionTextField.getText().trim();
             if (!text.isEmpty() && !definition.isEmpty()) {
-                DatabaseManager.getInstance().addMorpheme(text, definition);
+                editorController.handleAddMorpheme(text, definition);
                 JOptionPane.showMessageDialog(this, "Morphème ajouté avec succès!", "Succès", JOptionPane.INFORMATION_MESSAGE);
                 morphemeTextField.setText("");
                 definitionTextField.setText("");
-                // Update list
-                updateMorphemeList("", morphemeListModel);
+                // Reload morphemes from database and update list
+                reloadMorphemes();
             } else {
                 JOptionPane.showMessageDialog(this, "Veuillez remplir tous les champs!", "Erreur", JOptionPane.ERROR_MESSAGE);
             }
@@ -138,24 +156,18 @@ public class EditorFrame extends JFrame {
         JTextField wordTextField = new JTextField(20);
         formPanel.add(wordTextField, gbc);
 
-        // Selected morphemes
+        // Morpheme IDs (comma-separated)
         gbc.gridx = 0;
         gbc.gridy = 1;
-        formPanel.add(new JLabel("Morphèmes sélectionnés:"), gbc);
+        formPanel.add(new JLabel("IDs des morphèmes (ex: 1, 3, 5):"), gbc);
 
         gbc.gridx = 1;
-        gbc.gridheight = 3;
-        JTextArea selectedMorphemesArea = new JTextArea(5, 20);
-        selectedMorphemesArea.setEditable(true);
-        selectedMorphemesArea.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        selectedMorphemesArea.setLineWrap(true);
-        JScrollPane selectedScroll = new JScrollPane(selectedMorphemesArea);
-        formPanel.add(selectedScroll, gbc);
+        JTextField morphemeIdsField = new JTextField(20);
+        formPanel.add(morphemeIdsField, gbc);
 
         // Definition
-        gbc.gridheight = 1;
         gbc.gridx = 0;
-        gbc.gridy = 4;
+        gbc.gridy = 2;
         formPanel.add(new JLabel("Définition:"), gbc);
 
         gbc.gridx = 1;
@@ -164,58 +176,49 @@ public class EditorFrame extends JFrame {
 
         // Points
         gbc.gridx = 0;
-        gbc.gridy = 5;
+        gbc.gridy = 3;
         formPanel.add(new JLabel("Points:"), gbc);
 
         gbc.gridx = 1;
         JSpinner pointsSpinner = new JSpinner(new SpinnerNumberModel(5, 1, 100, 1));
         formPanel.add(pointsSpinner, gbc);
 
-        // Clear selection button
-        gbc.gridx = 0;
-        gbc.gridy = 6;
-        JButton clearButton = new JButton("Effacer la sélection");
-        clearButton.setBackground(new Color(255, 200, 200));
-        clearButton.addActionListener(e -> selectedMorphemesArea.setText(""));
-        formPanel.add(clearButton, gbc);
-
         // Add button
-        gbc.gridx = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
         JButton addButton = new JButton("Ajouter un mot");
         addButton.setBackground(BUTTON_COLOR);
         addButton.setForeground(Color.WHITE);
         addButton.addActionListener(e -> {
             String word = wordTextField.getText().trim();
-            String selectedText = selectedMorphemesArea.getText().trim();
+            String idsText = morphemeIdsField.getText().trim();
             String definition = definitionTextField.getText().trim();
 
-            if (!word.isEmpty() && !selectedText.isEmpty() && !definition.isEmpty()) {
+            if (!word.isEmpty() && !idsText.isEmpty() && !definition.isEmpty()) {
                 try {
-                    // Parse the selected morpheme IDs from the text area
-                    java.util.List<Integer> ids = new ArrayList<>();
-                    for (String line : selectedText.split("\n")) {
-                        String trimmed = line.trim();
-                        if (!trimmed.isEmpty()) {
-                            // Extract ID (first number before space or dash)
-                            String[] parts = trimmed.split("[\\s\\-]+");
-                            ids.add(Integer.parseInt(parts[0]));
-                        }
+                    // Parse comma-separated IDs
+                    List<Integer> ids = new ArrayList<>();
+                    for (String idStr : idsText.split(",")) {
+                        ids.add(Integer.parseInt(idStr.trim()));
                     }
 
                     int points = (Integer) pointsSpinner.getValue();
 
-                    DatabaseManager.getInstance().addWord(word, ids, points, definition);
+                    editorController.handleAddWord(word, ids, points, definition);
                     JOptionPane.showMessageDialog(this, "Mot ajouté avec succès!", "Succès", JOptionPane.INFORMATION_MESSAGE);
                     wordTextField.setText("");
-                    selectedMorphemesArea.setText("");
+                    morphemeIdsField.setText("");
                     definitionTextField.setText("");
                     pointsSpinner.setValue(5);
-                    updateWordList("", wordListModel);
+                    // Reload words from database and update list
+                    reloadWords();
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(this, "Erreur lors de l'analyse des IDs de morphème!", "Erreur", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Erreur: IDs invalides. Utilisez le format: 1, 3, 5", "Erreur", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
-                JOptionPane.showMessageDialog(this, "Veuillez remplir tous les champs et sélectionner au moins un morphème!", "Erreur", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Veuillez remplir tous les champs!", "Erreur", JOptionPane.ERROR_MESSAGE);
             }
         });
         formPanel.add(addButton, gbc);

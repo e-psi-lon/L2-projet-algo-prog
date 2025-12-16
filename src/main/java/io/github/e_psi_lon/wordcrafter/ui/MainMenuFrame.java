@@ -317,7 +317,7 @@ public class MainMenuFrame extends JFrame {
         showFrozenOverlay();
 
         JDialog editorDialog = new JDialog(this, "WordCrafter - Mode Éditeur", true);
-        EditorFrame editorFrame = new EditorFrame();
+        EditorFrame editorFrame = new EditorFrame(serviceFactory.createEditorController());
         gameLauncher(editorDialog, editorFrame.getContentPane(), editorFrame.getSize());
     }
     
