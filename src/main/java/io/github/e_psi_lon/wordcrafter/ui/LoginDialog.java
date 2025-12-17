@@ -2,6 +2,7 @@ package io.github.e_psi_lon.wordcrafter.ui;
 
 import io.github.e_psi_lon.wordcrafter.controller.AuthController;
 import io.github.e_psi_lon.wordcrafter.model.User;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -65,7 +66,7 @@ public class LoginDialog extends JDialog {
         add(mainPanel);
     }
 
-    private JPanel createButtonPanel() {
+    private @NotNull JPanel createButtonPanel() {
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.setBackground(LIGHT_CLOUD);
 

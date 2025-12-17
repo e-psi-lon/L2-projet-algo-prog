@@ -8,6 +8,7 @@ import io.github.e_psi_lon.wordcrafter.service.ServiceFactory;
 import io.github.e_psi_lon.wordcrafter.ui.game.MainGameFrame;
 import io.github.e_psi_lon.wordcrafter.ui.game.FreeBuildFrame;
 import io.github.e_psi_lon.wordcrafter.ui.game.PrefixMatcherFrame;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -154,7 +155,7 @@ public class MainMenuFrame extends JFrame {
         glassPanelOverlay.setVisible(false);
     }
 
-    private JButton createStyledButton(String text) {
+    private @NotNull JButton createStyledButton(String text) {
         JButton button = new JButton(text);
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setMaximumSize(new Dimension(300, 40));
@@ -283,11 +284,11 @@ public class MainMenuFrame extends JFrame {
         GameController gameController = serviceFactory.createGameController(player);
 
         JDialog freeBuildDialog = new JDialog(this, "WordCrafter - Mode construction libre", true);
-        FreeBuildFrame freeBuildFrame = new FreeBuildFrame(currentUser, gameController, gameController.getGameStateManager());
+        FreeBuildFrame freeBuildFrame = new FreeBuildFrame(gameController, gameController.getGameStateManager());
         gameLauncher(freeBuildDialog, freeBuildFrame.getContentPane(), freeBuildFrame.getSize());
     }
 
-    private void gameLauncher(JDialog dialog, Container contentPane, Dimension size) {
+    private void gameLauncher(@NotNull JDialog dialog, Container contentPane, Dimension size) {
         dialog.setContentPane(contentPane);
         dialog.setSize(size);
         dialog.setLocationRelativeTo(this);

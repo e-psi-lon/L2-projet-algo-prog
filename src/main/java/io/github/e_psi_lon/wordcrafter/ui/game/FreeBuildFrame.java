@@ -2,13 +2,13 @@ package io.github.e_psi_lon.wordcrafter.ui.game;
 
 import io.github.e_psi_lon.wordcrafter.controller.GameController;
 import io.github.e_psi_lon.wordcrafter.model.Morpheme;
-import io.github.e_psi_lon.wordcrafter.model.User;
 import io.github.e_psi_lon.wordcrafter.service.GameStateListener;
 import io.github.e_psi_lon.wordcrafter.service.GameStateManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,11 +23,9 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
     private JPanel constructedWordPanel;
     private JLabel scoreLabel;
     private JList<Morpheme> morphemeList;
-    private DefaultListModel<Morpheme> morphemeListModel;
-    private JList<String> constructedWordsList;
     private DefaultListModel<String> constructedWordsModel;
 
-    public FreeBuildFrame(User user, GameController gameController, GameStateManager gameStateManager) {
+    public FreeBuildFrame(GameController gameController, @NotNull GameStateManager gameStateManager) {
         this.gameController = gameController;
         this.gameStateManager = gameStateManager;
 
@@ -85,7 +83,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
         leftPanel.setBorder(BorderFactory.createTitledBorder("Morphèmes disponibles"));
         leftPanel.setPreferredSize(new Dimension(300, 0));
 
-        morphemeListModel = new DefaultListModel<>();
+        DefaultListModel<Morpheme> morphemeListModel = new DefaultListModel<>();
         for (Morpheme morpheme : allMorphemes) {
             morphemeListModel.addElement(morpheme);
         }
@@ -123,7 +121,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
         wordsPanel.setBackground(LIGHT_CLOUD);
 
         constructedWordsModel = new DefaultListModel<>();
-        constructedWordsList = new JList<>(constructedWordsModel);
+        JList<String> constructedWordsList = new JList<>(constructedWordsModel);
         constructedWordsList.setBackground(Color.WHITE);
         JScrollPane wordsScrollPane = new JScrollPane(constructedWordsList);
         wordsPanel.add(wordsScrollPane, BorderLayout.CENTER);
@@ -134,7 +132,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
         add(mainPanel);
     }
 
-    private JPanel createButtonPanel() {
+    private @NotNull JPanel createButtonPanel() {
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.setBackground(LIGHT_CLOUD);
 
@@ -257,7 +255,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
      * @param morphemes The morphemes used in the word
      * @return An error message if validation fails, null if valid
      */
-    private String validateDefinition(String userDefinition, List<Morpheme> morphemes) {
+    private @Nullable String validateDefinition(@NotNull String userDefinition, @NotNull List<Morpheme> morphemes) {
         String normalizedUserDef = userDefinition.toLowerCase().trim();
 
         // Split into words and remove punctuation
@@ -293,7 +291,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
     }
 
     @Override
-    public void onGameStateChanged(GameStateManager.GameStateEvent event) {
+    public void onGameStateChanged(GameStateManager.@NotNull GameStateEvent event) {
         switch (event.type()) {
             case MORPHEME_SELECTED:
             case MORPHEME_DESELECTED:

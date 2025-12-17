@@ -3,17 +3,18 @@ package io.github.e_psi_lon.wordcrafter.service;
 import io.github.e_psi_lon.wordcrafter.model.Morpheme;
 import io.github.e_psi_lon.wordcrafter.model.Player;
 import io.github.e_psi_lon.wordcrafter.model.Word;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class GameStateManager {
-    private final Player currentPlayer;
+    private Player currentPlayer;
     private final List<Morpheme> selectedMorphemes;
     private final List<Word> constructedWords;
     private final List<GameStateListener> listeners;
     private int currentScore;
 
-    public GameStateManager(Player player) {
+    public GameStateManager(@NotNull Player player) {
         this.currentPlayer = player;
         this.selectedMorphemes = new ArrayList<>();
         this.constructedWords = new ArrayList<>();
@@ -63,6 +64,7 @@ public class GameStateManager {
     public void recordConstructedWord(Word word) {
         constructedWords.add(word);
         currentScore += word.points();
+        currentPlayer = currentPlayer.addPoints(word.points());
         notifyListeners(new GameStateEvent(GameStateEvent.Type.WORD_CONSTRUCTED, word));
     }
 
@@ -82,14 +84,10 @@ public class GameStateManager {
     public void updateScore(int newScore) {
         int oldScore = currentScore;
         this.currentScore = newScore;
+        currentPlayer = currentPlayer.withScore(newScore);
         if (oldScore != newScore) {
             notifyListeners(new GameStateEvent(GameStateEvent.Type.SCORE_UPDATED, newScore));
         }
-    }
-
-    public void resetForNewRound() {
-        clearSelection();
-        notifyListeners(new GameStateEvent(GameStateEvent.Type.ROUND_RESET, null));
     }
 
     public record GameStateEvent(Type type, Object data) {

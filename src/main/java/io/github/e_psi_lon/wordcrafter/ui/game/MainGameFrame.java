@@ -6,6 +6,7 @@ import io.github.e_psi_lon.wordcrafter.model.User;
 import io.github.e_psi_lon.wordcrafter.model.Word;
 import io.github.e_psi_lon.wordcrafter.service.GameStateListener;
 import io.github.e_psi_lon.wordcrafter.service.GameStateManager;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,10 +25,9 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
 
     private JPanel constructedWordPanel;
     private JLabel scoreLabel;
-    private JList<String> constructedWordsList;
     private DefaultListModel<String> constructedWordsModel;
 
-    public MainGameFrame(User user, GameController gameController, GameStateManager gameStateManager) {
+    public MainGameFrame(User user, GameController gameController, @NotNull GameStateManager gameStateManager) {
         this.gameController = gameController;
         this.gameStateManager = gameStateManager;
 
@@ -80,7 +80,7 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
 
         for (int i = 0; i < totalMorphemes; i++) {
             Morpheme morpheme = availableMorphemes.get(i);
-            JButton morphemeButton = createMorphemeButton(morpheme, i);
+            JButton morphemeButton = createMorphemeButton(morpheme);
             morphemeButtons[i] = morphemeButton;
             gridPanel.add(morphemeButton);
         }
@@ -111,7 +111,7 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
         listPanel.setBackground(LIGHT_CLOUD);
 
         constructedWordsModel = new DefaultListModel<>();
-        constructedWordsList = new JList<>(constructedWordsModel);
+        JList<String> constructedWordsList = new JList<>(constructedWordsModel);
         constructedWordsList.setBackground(Color.WHITE);
         JScrollPane scrollPane = new JScrollPane(constructedWordsList);
         listPanel.add(scrollPane, BorderLayout.CENTER);
@@ -123,7 +123,7 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
         add(mainPanel);
     }
 
-    private JPanel createButtonPanel() {
+    private @NotNull JPanel createButtonPanel() {
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.setBackground(LIGHT_CLOUD);
 
@@ -141,7 +141,7 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
         return buttonPanel;
     }
 
-    private JButton createMorphemeButton(Morpheme morpheme, int index) {
+    private @NotNull JButton createMorphemeButton(@NotNull Morpheme morpheme) {
         JButton button = new JButton("<html><center>" + morpheme.text() + "<br><small>" +
                                      morpheme.definition() + "</small></center></html>");
         button.setBackground(MORPHEME_COLOR);
@@ -237,7 +237,7 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
     }
 
     @Override
-    public void onGameStateChanged(GameStateManager.GameStateEvent event) {
+    public void onGameStateChanged(GameStateManager.@NotNull GameStateEvent event) {
         switch (event.type()) {
             case MORPHEME_SELECTED:
             case MORPHEME_DESELECTED, SELECTION_CLEARED, ROUND_RESET:

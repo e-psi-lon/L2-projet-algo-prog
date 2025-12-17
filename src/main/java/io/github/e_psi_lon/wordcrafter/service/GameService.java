@@ -3,6 +3,7 @@ package io.github.e_psi_lon.wordcrafter.service;
 import io.github.e_psi_lon.wordcrafter.database.DatabaseManager;
 import io.github.e_psi_lon.wordcrafter.model.Morpheme;
 import io.github.e_psi_lon.wordcrafter.model.Word;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -38,7 +39,7 @@ public class GameService {
     }
 
 
-    public String constructWordText(List<Morpheme> selectedMorphemes) {
+    public String constructWordText(@NotNull List<Morpheme> selectedMorphemes) {
         StringBuilder wordText = new StringBuilder();
         for (Morpheme morpheme : selectedMorphemes) {
             wordText.append(morpheme.text());
@@ -46,7 +47,7 @@ public class GameService {
         return wordText.toString();
     }
 
-    public List<Integer> extractMorphemeIds(List<Morpheme> morphemes) {
+    public List<Integer> extractMorphemeIds(@NotNull List<Morpheme> morphemes) {
         return morphemes.stream()
             .map(Morpheme::getId)
             .toList();

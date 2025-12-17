@@ -24,30 +24,23 @@ public class EditorFrame extends JFrame {
     private DefaultListModel<String> morphemeListModel;
     private DefaultListModel<String> wordListModel;
 
-    public EditorFrame(EditorController editorController) {
+    public EditorFrame(@NotNull EditorController editorController) {
         this.editorController = editorController;
         setTitle("WordCrafter - Mode Éditeur");
         setSize(1200, 700);
         setLocationRelativeTo(null);
 
-        // Load data at startup
         allMorphemes = editorController.getAllMorphemes();
         allWords = editorController.getAllWords();
 
         initComponents();
     }
 
-    /**
-     * Reload morphemes from database and update the display
-     */
     private void reloadMorphemes() {
         allMorphemes = editorController.getAllMorphemes();
         updateMorphemeList("", morphemeListModel);
     }
 
-    /**
-     * Reload words from database and update the display
-     */
     private void reloadWords() {
         allWords = editorController.getAllWords();
         updateWordList("", wordListModel);
@@ -58,7 +51,6 @@ public class EditorFrame extends JFrame {
         mainPanel.setBackground(LIGHT_CLOUD);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Initialize list models
         morphemeListModel = new DefaultListModel<>();
         wordListModel = new DefaultListModel<>();
 
@@ -83,7 +75,7 @@ public class EditorFrame extends JFrame {
         add(mainPanel);
     }
 
-    private JPanel createMorphemePanel() {
+    private @NotNull JPanel createMorphemePanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(LIGHT_CLOUD);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -140,7 +132,7 @@ public class EditorFrame extends JFrame {
         return addButton;
     }
 
-    private JPanel createWordPanel() {
+    private @NotNull JPanel createWordPanel() {
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(LIGHT_CLOUD);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -156,10 +148,9 @@ public class EditorFrame extends JFrame {
         JTextField wordTextField = new JTextField(20);
         formPanel.add(wordTextField, gbc);
 
-        // Morpheme IDs (comma-separated)
         gbc.gridx = 0;
         gbc.gridy = 1;
-        formPanel.add(new JLabel("IDs des morphèmes (ex: 1, 3, 5):"), gbc);
+        formPanel.add(new JLabel("IDs des morphèmes (ex: 1,3,5):"), gbc);
 
         gbc.gridx = 1;
         JTextField morphemeIdsField = new JTextField(20);
@@ -226,7 +217,7 @@ public class EditorFrame extends JFrame {
         return formPanel;
     }
 
-    private JPanel createListsPanel() {
+    private @NotNull JPanel createListsPanel() {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         panel.setBackground(LIGHT_CLOUD);
         panel.setBorder(BorderFactory.createTitledBorder("Base de données"));
@@ -247,7 +238,7 @@ public class EditorFrame extends JFrame {
         return panel;
     }
 
-    private JPanel createMorphemeListPanel() {
+    private @NotNull JPanel createMorphemeListPanel() {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         panel.setBackground(LIGHT_CLOUD);
         panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -297,7 +288,7 @@ public class EditorFrame extends JFrame {
         return panel;
     }
 
-    private JPanel createWordListPanel() {
+    private @NotNull JPanel createWordListPanel() {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         panel.setBackground(LIGHT_CLOUD);
         panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -375,7 +366,7 @@ public class EditorFrame extends JFrame {
         return wordList;
     }
 
-    private void updateMorphemeList(String filter, DefaultListModel<String> model) {
+    private void updateMorphemeList(@NotNull String filter, @NotNull DefaultListModel<String> model) {
         model.clear();
         String filterLower = filter.toLowerCase();
 
@@ -387,7 +378,7 @@ public class EditorFrame extends JFrame {
         }
     }
 
-    private void updateWordList(String filter, DefaultListModel<String> model) {
+    private void updateWordList(@NotNull String filter, @NotNull DefaultListModel<String> model) {
         model.clear();
         String filterLower = filter.toLowerCase();
 

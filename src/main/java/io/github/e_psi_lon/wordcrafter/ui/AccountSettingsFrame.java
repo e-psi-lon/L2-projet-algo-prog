@@ -3,6 +3,7 @@ package io.github.e_psi_lon.wordcrafter.ui;
 import io.github.e_psi_lon.wordcrafter.service.AuthService;
 import io.github.e_psi_lon.wordcrafter.model.User;
 import io.github.e_psi_lon.wordcrafter.model.Player;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -184,7 +185,7 @@ public class AccountSettingsFrame extends JFrame {
         add(scrollPane);
     }
 
-    private void changeUsername(JTextField newUsernameField, JLabel usernameLabel) {
+    private void changeUsername(@NotNull JTextField newUsernameField, JLabel usernameLabel) {
         String newUsername = newUsernameField.getText().trim();
 
         if (newUsername.isEmpty()) {
@@ -205,7 +206,7 @@ public class AccountSettingsFrame extends JFrame {
         newUsernameField.setText("");
     }
 
-    private void changePassword(JPasswordField oldPasswordField, JPasswordField newPasswordField, JPasswordField confirmPasswordField) {
+    private void changePassword(@NotNull JPasswordField oldPasswordField, @NotNull JPasswordField newPasswordField, @NotNull JPasswordField confirmPasswordField) {
         String oldPassword = new String(oldPasswordField.getPassword());
         String newPassword = new String(newPasswordField.getPassword());
         String confirmPassword = new String(confirmPasswordField.getPassword());

@@ -1,6 +1,7 @@
 package io.github.e_psi_lon.wordcrafter.database;
 
 import io.github.e_psi_lon.wordcrafter.model.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -263,7 +264,7 @@ public class DatabaseManager {
         }
     }
 
-    private String hashPassword(String password) {
+    private @NotNull String hashPassword(@NotNull String password) {
         try {
             SecureRandom random = new SecureRandom();
             byte[] salt = new byte[16];
@@ -280,7 +281,7 @@ public class DatabaseManager {
         }
     }
 
-    private boolean verifyPassword(String password, String hash) {
+    private boolean verifyPassword(@NotNull String password, String hash) {
         try {
             byte[] saltAndHash = hexToBytes(hash);
             byte[] salt = new byte[16];
@@ -299,7 +300,7 @@ public class DatabaseManager {
         }
     }
 
-    private String bytesToHex(byte[] bytes) {
+    private @NotNull String bytesToHex(byte @NotNull [] bytes) {
         StringBuilder hexString = new StringBuilder();
         for (byte b : bytes) {
             String hex = Integer.toHexString(0xff & b);
@@ -309,7 +310,7 @@ public class DatabaseManager {
         return hexString.toString();
     }
 
-    private byte[] hexToBytes(String hex) {
+    private byte @NotNull [] hexToBytes(@NotNull String hex) {
         byte[] bytes = new byte[hex.length() / 2];
         for (int i = 0; i < bytes.length; i++) {
             bytes[i] = (byte) Integer.parseInt(hex.substring(i * 2, i * 2 + 2), 16);
