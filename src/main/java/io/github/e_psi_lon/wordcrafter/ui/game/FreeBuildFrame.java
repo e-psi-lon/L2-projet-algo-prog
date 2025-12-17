@@ -4,6 +4,7 @@ import io.github.e_psi_lon.wordcrafter.controller.GameController;
 import io.github.e_psi_lon.wordcrafter.model.Morpheme;
 import io.github.e_psi_lon.wordcrafter.service.GameStateListener;
 import io.github.e_psi_lon.wordcrafter.service.GameStateManager;
+import io.github.e_psi_lon.wordcrafter.ui.AppColors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,33 +17,18 @@ import java.util.List;
  * Points = number of morphemes * 10 (e.g., 3 morphemes = 30 points)
  */
 public class FreeBuildFrame extends GameFrame implements GameStateListener {
-    private final GameController gameController;
-    private final GameStateManager gameStateManager;
-    private List<Morpheme> allMorphemes;
-
-    private JPanel constructedWordPanel;
-    private JLabel scoreLabel;
     private JList<Morpheme> morphemeList;
     private DefaultListModel<String> constructedWordsModel;
 
     public FreeBuildFrame(GameController gameController, @NotNull GameStateManager gameStateManager) {
-        this.gameController = gameController;
-        this.gameStateManager = gameStateManager;
+        super(gameController, gameStateManager, "WordCrafter - Mode construction libre");
 
         // Register as a listener for game state changes
         gameStateManager.addListener(this);
 
-        setTitle("WordCrafter - Mode construction libre");
         setSize(900, 600);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        
         loadMorphemes();
         initComponents();
-    }
-    
-    private void loadMorphemes() {
-        allMorphemes = gameController.getAvailableMorphemes();
     }
 
     private void initComponents() {
@@ -55,10 +41,10 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
         topPanel.setBackground(LIGHT_CLOUD);
 
         JLabel instructionLabel = new JLabel("<html><center><b>Mode Construction Libre</b><br>" +
-                "Sélectionnez des morphèmes pour construire un mot. Points = nombre de morphèmes × 10</center></html>");
+                "Sélectionnez des morphèmes pour construire un mot. Points = nombre de morphèmes + (nombres de morphèmes - 1)²</center></html>");
         instructionLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
         instructionLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        instructionLabel.setForeground(new Color(199, 21, 133));
+        instructionLabel.setForeground(AppColors.TITLE_TEXT);
         topPanel.add(instructionLabel, BorderLayout.NORTH);
 
         // Word construction panel
@@ -84,7 +70,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
         leftPanel.setPreferredSize(new Dimension(300, 0));
 
         DefaultListModel<Morpheme> morphemeListModel = new DefaultListModel<>();
-        for (Morpheme morpheme : allMorphemes) {
+        for (Morpheme morpheme : availableMorphemes) {
             morphemeListModel.addElement(morpheme);
         }
 
@@ -151,7 +137,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
         return buttonPanel;
     }
 
-    private void updateConstructedWordDisplay() {
+    protected void updateConstructedWordDisplay() {
         constructedWordPanel.removeAll();
         List<Morpheme> selected = gameStateManager.getSelectedMorphemes();
 
@@ -181,7 +167,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
             int potentialPoints = n + (n - 1) * (n - 1);
             JLabel pointsLabel = new JLabel(" = " + potentialPoints + " pts");
             pointsLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
-            pointsLabel.setForeground(new Color(0, 128, 0));
+            pointsLabel.setForeground(AppColors.SUCCESS_TEXT);
             constructedWordPanel.add(pointsLabel);
         }
 
@@ -231,10 +217,9 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
         // Award points directly (free build doesn't validate against database)
         gameController.awardPoints(points);
 
-        // Add to constructed words list
-        constructedWordsModel.addElement(wordText.toString() + " (" + points + " pts)");
+        constructedWordsModel.addElement(wordText + " (" + points + " pts)");
 
-        // Show success message
+        // Success message
         JOptionPane.showMessageDialog(this,
                 "Mot créé avec succès !\n\n" +
                 "Mot: " + wordText + "\n" +
@@ -243,7 +228,6 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
                 "Points gagnés: " + points,
                 "Succès", JOptionPane.INFORMATION_MESSAGE);
 
-        // Clear selection
         gameController.handleClearSelection();
     }
 
@@ -320,7 +304,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
             }
 
             if (!isSelected) {
-                label.setBackground(new Color(255, 228, 225));
+                label.setBackground(AppColors.MORPHEME_COLOR);
             }
 
             return label;

@@ -1,5 +1,7 @@
 package io.github.e_psi_lon.wordcrafter.ui.game;
 
+import io.github.e_psi_lon.wordcrafter.ui.AppColors;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -10,10 +12,8 @@ import java.awt.*;
 public class PrefixMatcherFrame extends GameFrame {
 
     public PrefixMatcherFrame() {
-        setTitle("WordCrafter - Mode préfixe-matcher");
+        super(null, null, "WordCrafter - Mode préfixe-matcher");
         setSize(600, 400);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         initComponents();
     }
@@ -27,7 +27,7 @@ public class PrefixMatcherFrame extends GameFrame {
                                         "Ce mode de jeu n'est pas encore implémenté.<br><br>" +
                                         "Prochainement !</center></html>");
         messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        messageLabel.setForeground(new Color(199, 21, 133));
+        messageLabel.setForeground(AppColors.TITLE_TEXT);
 
         mainPanel.add(messageLabel, BorderLayout.CENTER);
 

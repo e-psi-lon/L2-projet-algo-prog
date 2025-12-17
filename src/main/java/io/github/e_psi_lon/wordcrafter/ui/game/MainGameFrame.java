@@ -2,7 +2,6 @@ package io.github.e_psi_lon.wordcrafter.ui.game;
 
 import io.github.e_psi_lon.wordcrafter.controller.GameController;
 import io.github.e_psi_lon.wordcrafter.model.Morpheme;
-import io.github.e_psi_lon.wordcrafter.model.User;
 import io.github.e_psi_lon.wordcrafter.model.Word;
 import io.github.e_psi_lon.wordcrafter.service.GameStateListener;
 import io.github.e_psi_lon.wordcrafter.service.GameStateManager;
@@ -18,34 +17,20 @@ import java.util.List;
  * Main game mode - morpheme grid that can be combined to make words
  */
 public class MainGameFrame extends GameFrame implements GameStateListener {
-    private final GameController gameController;
-    private final GameStateManager gameStateManager;
-    private List<Morpheme> availableMorphemes;
     private JButton[] morphemeButtons;
-
-    private JPanel constructedWordPanel;
-    private JLabel scoreLabel;
     private DefaultListModel<String> constructedWordsModel;
 
-    public MainGameFrame(User user, GameController gameController, @NotNull GameStateManager gameStateManager) {
-        this.gameController = gameController;
-        this.gameStateManager = gameStateManager;
+    public MainGameFrame(GameController gameController, @NotNull GameStateManager gameStateManager) {
+        super(gameController, gameStateManager, "WordCrafter - Mode de jeu principal");
 
         // Register as a listener for game state changes
         gameStateManager.addListener(this);
 
-        setTitle("WordCrafter - Mode de jeu principal");
         setSize(800, 600);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
         loadMorphemes();
         initComponents();
     }
 
-    private void loadMorphemes() {
-        availableMorphemes = gameController.getAvailableMorphemes();
-    }
 
     private void initComponents() {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
@@ -121,6 +106,8 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
         mainPanel.add(rightPanel, BorderLayout.EAST);
 
         add(mainPanel);
+
+        refreshConstructedWordsList();
     }
 
     private @NotNull JPanel createButtonPanel() {
@@ -158,7 +145,7 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
         return button;
     }
 
-    private void updateConstructedWordDisplay() {
+    protected void updateConstructedWordDisplay() {
         constructedWordPanel.removeAll();
         List<Morpheme> selected = gameStateManager.getSelectedMorphemes();
 
@@ -205,13 +192,11 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
             return;
         }
 
-        // Use controller to validate word - handles all business logic
+        // Use controller to validate word
         Word validWord = gameController.handleWordVerification();
 
         if (validWord != null) {
-            // The word is valid
-            constructedWordsModel.addElement(validWord.text() + " (" + validWord.points() + " pts)");
-
+            // The word is valid, the list will be updated via event listener
             String message = "Mot valide ! Vous avez gagné " + validWord.points() + " points !\n\n";
             if (validWord.definition() != null && !validWord.definition().isEmpty()) {
                 message += "Définition: " + validWord.definition();
@@ -247,10 +232,18 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
             case WORD_CONSTRUCTED:
                 updateGridButtons();
                 scoreLabel.setText("Score: " + gameStateManager.getCurrentScore());
+                refreshConstructedWordsList();
                 break;
             case SCORE_UPDATED:
                 scoreLabel.setText("Score: " + gameStateManager.getCurrentScore());
                 break;
+        }
+    }
+
+    private void refreshConstructedWordsList() {
+        constructedWordsModel.clear();
+        for (Word word : gameStateManager.getConstructedWords()) {
+            constructedWordsModel.addElement(word.text() + " (" + word.points() + " pts)");
         }
     }
 }
