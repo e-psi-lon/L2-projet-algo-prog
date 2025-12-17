@@ -39,7 +39,7 @@ public class ServiceFactory {
     }
 
     public EditorController createEditorController() {
-        return new EditorController(gameService);
+        return new EditorController(gameService, createAuthController());
     }
 
     public DatabaseManager getDatabaseManager() {

@@ -12,9 +12,11 @@ import java.util.List;
  */
 public class EditorController {
     private final GameService gameService;
+    private final AuthController authController;
 
-    public EditorController(GameService gameService) {
+    public EditorController(GameService gameService, AuthController authController) {
         this.gameService = gameService;
+        this.authController = authController;
     }
 
     public void handleAddMorpheme(String text, String definition) {
@@ -23,6 +25,10 @@ public class EditorController {
 
     public void handleAddWord(String text, List<Integer> morphemeIds, int points, String definition) {
         gameService.addWord(text, morphemeIds, points, definition);
+    }
+
+    public boolean handleCreateAdmin(String username, String password) {
+        return authController.handleAdminCreation(username, password);
     }
 
     public List<Morpheme> getAllMorphemes() {

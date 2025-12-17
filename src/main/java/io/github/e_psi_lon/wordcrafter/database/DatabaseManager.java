@@ -401,6 +401,27 @@ public class DatabaseManager {
         return morphemes;
     }
 
+    public List<Player> getAllPlayers() {
+        List<Player> players = new ArrayList<>();
+        String query = "SELECT * FROM users WHERE role = 'PLAYER'";
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                players.add(new Player(
+                    rs.getInt("id"),
+                    rs.getString("username"),
+                    rs.getString("password_hash"),
+                    rs.getInt("score")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return players;
+    }
+
     public List<Word> getAllWords() {
         List<Word> words = new ArrayList<>();
         String query = "SELECT * FROM words";

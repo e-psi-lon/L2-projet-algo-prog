@@ -27,16 +27,15 @@ public class MainMenuFrame extends JFrame {
     private JPanel glassPanelOverlay;
     private final ServiceFactory serviceFactory;
 
-    // Pastel pink theme colors
-    private static final Color PASTEL_PINK = new Color(255, 209, 220);
-    private static final Color LIGHT_CLOUD = new Color(255, 240, 245);
-    private static final Color BUTTON_COLOR = new Color(255, 182, 193);
+    private static final Color PASTEL_PINK = AppColors.PASTEL_PINK;
+    private static final Color LIGHT_CLOUD = AppColors.LIGHT_CLOUD;
+    private static final Color BUTTON_COLOR = AppColors.BUTTON_COLOR;
 
     public MainMenuFrame(ServiceFactory serviceFactory) {
         this.serviceFactory = serviceFactory;
         setTitle("WordCrafter");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600, 600);
+        setSize(700, 700);
         setLocationRelativeTo(null);
 
         initComponents();
@@ -60,10 +59,10 @@ public class MainMenuFrame extends JFrame {
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
 
-        // Title (centered)
+        // Title
         JLabel titleLabel = new JLabel("WordCrafter");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 48));
-        titleLabel.setForeground(new Color(199, 21, 133)); // Medium violet red
+        titleLabel.setForeground(AppColors.TITLE_TEXT);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(titleLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
@@ -104,6 +103,11 @@ public class MainMenuFrame extends JFrame {
         mainPanel.add(settingsButton);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
 
+        JButton statsButton = createStyledButton("Statistiques");
+        statsButton.addActionListener(e -> showStatistics());
+        mainPanel.add(statsButton);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+
         // Login button (will be replaced with panel when logged in)
         loginButton = createStyledButton("Connexion");
         loginButton.addActionListener(e -> showLogin());
@@ -112,7 +116,7 @@ public class MainMenuFrame extends JFrame {
 
         // Disconnect button (created but not added initially)
         disconnectButton = createStyledButton("Déconnecter");
-        disconnectButton.setBackground(new Color(220, 100, 100));
+        disconnectButton.setBackground(AppColors.DISCONNECT);
         disconnectButton.addActionListener(e -> logout());
 
         JButton quitButton = createStyledButton("Quitter");
@@ -137,7 +141,7 @@ public class MainMenuFrame extends JFrame {
             protected void paintComponent(Graphics g) {
                 // Draw semi-transparent gray overlay
                 Graphics2D g2d = (Graphics2D) g;
-                g2d.setColor(new Color(128, 128, 128, 100)); // Gray with 100/255 alpha (about 40% opacity)
+                g2d.setColor(AppColors.OVERLAY);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
                 super.paintComponent(g);
             }
@@ -216,7 +220,11 @@ public class MainMenuFrame extends JFrame {
                 loginPanel.add(disconnectButton);
 
                 mainPanel.remove(loginButtonIndex);
+                if (loginButtonIndex < mainPanel.getComponentCount() &&
+                    mainPanel.getComponent(loginButtonIndex) instanceof Box.Filler)
+                    mainPanel.remove(loginButtonIndex);
                 mainPanel.add(loginPanel, loginButtonIndex);
+                mainPanel.add(Box.createRigidArea(new Dimension(0, 15)), loginButtonIndex + 1);
             }
         } else {
             loginButton.setText("Connexion");
@@ -224,7 +232,7 @@ public class MainMenuFrame extends JFrame {
             Component[] components = mainPanel.getComponents();
             for (int i = 0; i < components.length; i++) {
                 if (components[i] instanceof JPanel panel && i > 0) {
-                    if (panel.getComponentCount() == 3) {
+                    if (panel.getComponentCount() == 2) {
                         boolean hasLoginButton = false;
                         for (Component comp : panel.getComponents()) {
                             if (comp == loginButton) {
@@ -234,7 +242,10 @@ public class MainMenuFrame extends JFrame {
                         }
                         if (hasLoginButton) {
                             mainPanel.remove(i);
+                            if (i < mainPanel.getComponentCount() && mainPanel.getComponent(i) instanceof Box.Filler)
+                                mainPanel.remove(i);
                             mainPanel.add(loginButton, i);
+                            mainPanel.add(Box.createRigidArea(new Dimension(0, 15)), i + 1);
                             break;
                         }
                     }
@@ -264,7 +275,7 @@ public class MainMenuFrame extends JFrame {
 
         // Create as a modal dialog instead of a frame
         JDialog gameDialog = new JDialog(this, "WordCrafter - Mode de jeu principal", true);
-        MainGameFrame gameFrame = new MainGameFrame(currentUser, gameController, gameController.getGameStateManager());
+        MainGameFrame gameFrame = new MainGameFrame(gameController, gameController.getGameStateManager());
         gameLauncher(gameDialog, gameFrame.getContentPane(), gameFrame.getSize());
     }
     
@@ -323,7 +334,42 @@ public class MainMenuFrame extends JFrame {
     }
     
     private void showSettings() {
-        JOptionPane.showMessageDialog(this, "Paramètres pas encore implémentés.", "Paramètres", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Il n'y a pas de paramètres à configurer.", "Paramètres", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void showStatistics() {
+        // Use DatabaseManager directly via ServiceFactory
+        var dbManager = serviceFactory.getDatabaseManager();
+        var allPlayers = dbManager.getAllPlayers();
+
+        // Sort by score descending
+        allPlayers.sort((p1, p2) -> Integer.compare(p2.getScore(), p1.getScore()));
+
+        StringBuilder stats = new StringBuilder();
+        stats.append("=== CLASSEMENT ===\n\n");
+
+        int rank = 1;
+        for (var player : allPlayers) {
+            stats.append(rank++).append(". ")
+                 .append(player.getUsername())
+                 .append(" - ")
+                 .append(player.getScore())
+                 .append(" points\n");
+        }
+
+        stats.append("\n=== STATISTIQUES ===\n");
+        stats.append("Total joueurs: ").append(allPlayers.size()).append("\n");
+        stats.append("Total morphèmes: ").append(serviceFactory.getGameService().getAllAvailableMorphemes().size()).append("\n");
+        stats.append("Total mots: ").append(serviceFactory.getGameService().getAllAvailableWords().size()).append("\n");
+
+        JTextArea textArea = new JTextArea(stats.toString());
+        textArea.setEditable(false);
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(400, 300));
+
+        JOptionPane.showMessageDialog(this, scrollPane, "Statistiques et Classement", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void showLogin() {

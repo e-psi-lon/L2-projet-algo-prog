@@ -16,8 +16,8 @@ import java.util.List;
  * Editor frame for administrators to add morphemes and words to the database.
  */
 public class EditorFrame extends JFrame {
-    private static final Color LIGHT_CLOUD = new Color(255, 240, 245);
-    private static final Color BUTTON_COLOR = new Color(255, 182, 193);
+    private static final Color LIGHT_CLOUD = AppColors.LIGHT_CLOUD;
+    private static final Color BUTTON_COLOR = AppColors.BUTTON_COLOR;
     private final EditorController editorController;
     private List<Morpheme> allMorphemes;
     private List<Word> allWords;
@@ -65,6 +65,10 @@ public class EditorFrame extends JFrame {
         // Word tab
         JPanel wordPanel = createWordPanel();
         tabbedPane.addTab("Ajouter un mot", wordPanel);
+
+        // Admin creation tab (secure - only accessible from editor)
+        JPanel adminPanel = createAdminPanel();
+        tabbedPane.addTab("Créer Admin", adminPanel);
 
         // Right side: Searchable lists for morphemes and words
         JPanel listsPanel = createListsPanel();
@@ -215,6 +219,78 @@ public class EditorFrame extends JFrame {
         formPanel.add(addButton, gbc);
 
         return formPanel;
+    }
+
+    private @NotNull JPanel createAdminPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(LIGHT_CLOUD);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Username
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(new JLabel("Nom d'utilisateur:"), gbc);
+
+        gbc.gridx = 1;
+        JTextField usernameField = new JTextField(20);
+        panel.add(usernameField, gbc);
+
+        // Password
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(new JLabel("Mot de passe:"), gbc);
+
+        gbc.gridx = 1;
+        JPasswordField passwordField = new JPasswordField(20);
+        panel.add(passwordField, gbc);
+
+        // Confirm password
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(new JLabel("Confirmer mot de passe:"), gbc);
+
+        gbc.gridx = 1;
+        JPasswordField confirmPasswordField = new JPasswordField(20);
+        panel.add(confirmPasswordField, gbc);
+
+        // Add button
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        JButton createButton = new JButton("Créer administrateur");
+        createButton.setBackground(BUTTON_COLOR);
+        createButton.setForeground(Color.WHITE);
+        createButton.addActionListener(e -> {
+            String username = usernameField.getText().trim();
+            String password = new String(passwordField.getPassword());
+            String confirmPassword = new String(confirmPasswordField.getPassword());
+
+            if (username.isEmpty() || password.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Veuillez remplir tous les champs!", "Erreur", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (!password.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(this, "Les mots de passe ne correspondent pas!", "Erreur", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            boolean success = editorController.handleCreateAdmin(username, password);
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Administrateur créé avec succès!", "Succès", JOptionPane.INFORMATION_MESSAGE);
+                usernameField.setText("");
+                passwordField.setText("");
+                confirmPasswordField.setText("");
+            } else {
+                JOptionPane.showMessageDialog(this, "Ce nom d'utilisateur existe déjà!", "Erreur", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        panel.add(createButton, gbc);
+
+        return panel;
     }
 
     private @NotNull JPanel createListsPanel() {

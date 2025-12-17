@@ -13,8 +13,8 @@ import java.awt.*;
  * Allows changing password, username, and deleting account.
  */
 public class AccountSettingsFrame extends JFrame {
-    private static final Color LIGHT_CLOUD = new Color(255, 240, 245);
-    private static final Color BUTTON_COLOR = new Color(255, 182, 193);
+    private static final Color LIGHT_CLOUD = AppColors.LIGHT_CLOUD;
+    private static final Color BUTTON_COLOR = AppColors.BUTTON_COLOR;
     private User currentUser;
     private final Runnable onAccountDeleted;
     private final AuthService authService;
@@ -155,12 +155,12 @@ public class AccountSettingsFrame extends JFrame {
         gbc.gridy = 14;
         JLabel dangerLabel = new JLabel("Zone dangereuse:");
         dangerLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
-        dangerLabel.setForeground(new Color(220, 20, 60)); // Crimson
+        dangerLabel.setForeground(AppColors.DANGER);
         contentPanel.add(dangerLabel, gbc);
 
         gbc.gridy = 15;
         JButton deleteAccountButton = new JButton("Supprimer le compte");
-        deleteAccountButton.setBackground(new Color(220, 20, 60)); // Crimson
+        deleteAccountButton.setBackground(AppColors.DANGER);
         deleteAccountButton.setForeground(Color.WHITE);
         deleteAccountButton.setFont(new Font("SansSerif", Font.PLAIN, 14));
         deleteAccountButton.setPreferredSize(new Dimension(250, 40));
@@ -170,7 +170,7 @@ public class AccountSettingsFrame extends JFrame {
         // Close button
         gbc.gridy = 16;
         JButton closeButton = new JButton("Fermer");
-        closeButton.setBackground(new Color(200, 200, 200));
+        closeButton.setBackground(AppColors.NEUTRAL);
         closeButton.setFont(new Font("SansSerif", Font.PLAIN, 14));
         closeButton.setPreferredSize(new Dimension(250, 40));
         closeButton.addActionListener(e -> dispose());

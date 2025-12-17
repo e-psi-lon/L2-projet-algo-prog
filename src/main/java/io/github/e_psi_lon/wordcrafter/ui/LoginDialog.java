@@ -14,8 +14,8 @@ public class LoginDialog extends JDialog {
     private JPasswordField passwordField;
     private final AuthController authController;
 
-    private static final Color LIGHT_CLOUD = new Color(255, 240, 245);
-    private static final Color BUTTON_COLOR = new Color(255, 182, 193);
+    private static final Color LIGHT_CLOUD = AppColors.LIGHT_CLOUD;
+    private static final Color BUTTON_COLOR = AppColors.BUTTON_COLOR;
 
     public LoginDialog(Frame parent, AuthController authController) {
         super(parent, "Se connecter/S'inscrire", true);
