@@ -43,7 +43,6 @@ public class MainMenuFrame extends JFrame {
     }
 
     private void initComponents() {
-        // Create a top panel with BorderLayout for score (right only)
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(LIGHT_CLOUD);
         topPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
@@ -131,7 +130,6 @@ public class MainMenuFrame extends JFrame {
 
         add(outerPanel);
 
-        // Setup glass pane overlay for frozen state
         setupGlassPane();
     }
 
@@ -139,7 +137,6 @@ public class MainMenuFrame extends JFrame {
         glassPanelOverlay = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
-                // Draw semi-transparent gray overlay
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setColor(AppColors.OVERLAY);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
@@ -185,7 +182,6 @@ public class MainMenuFrame extends JFrame {
     }
 
     private void updateUI() {
-        // Update score label in top right corner
         if (currentUser != null && currentUser instanceof Player player)
             scoreLabel.setText("Score: " + player.getScore());
         else scoreLabel.setText("");
@@ -269,11 +265,7 @@ public class MainMenuFrame extends JFrame {
         }
 
         showFrozenOverlay();
-
-        // Create game controller with dependency injection
         GameController gameController = serviceFactory.createGameController(player);
-
-        // Create as a modal dialog instead of a frame
         JDialog gameDialog = new JDialog(this, "WordCrafter - Mode de jeu principal", true);
         MainGameFrame gameFrame = new MainGameFrame(gameController, gameController.getGameStateManager());
         gameLauncher(gameDialog, gameFrame.getContentPane(), gameFrame.getSize());
@@ -290,8 +282,6 @@ public class MainMenuFrame extends JFrame {
         }
 
         showFrozenOverlay();
-
-        // Create game controller with dependency injection
         GameController gameController = serviceFactory.createGameController(player);
 
         JDialog freeBuildDialog = new JDialog(this, "WordCrafter - Mode construction libre", true);
@@ -338,11 +328,8 @@ public class MainMenuFrame extends JFrame {
     }
 
     private void showStatistics() {
-        // Use DatabaseManager directly via ServiceFactory
         var dbManager = serviceFactory.getDatabaseManager();
         var allPlayers = dbManager.getAllPlayers();
-
-        // Sort by score descending
         allPlayers.sort((p1, p2) -> Integer.compare(p2.getScore(), p1.getScore()));
 
         StringBuilder stats = new StringBuilder();

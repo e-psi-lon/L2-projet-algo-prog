@@ -223,7 +223,7 @@ public class DatabaseManager {
             }
         }
 
-        // Insert some sample words (French) using proper junction table
+        // Insert some sample words using proper junction table
         String insertWord = "INSERT INTO words (text, points, definition) VALUES (?, ?, ?)";
         String insertWordMorpheme = "INSERT INTO word_morphemes (word_id, morpheme_id, position) VALUES (?, ?, ?)";
 
@@ -325,7 +325,6 @@ public class DatabaseManager {
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                // Verify password using salt from stored hash
                 String storedHash = rs.getString("password_hash");
                 if (verifyPassword(password, storedHash)) {
                     if (rs.getString("role").equals("ADMIN")) {
@@ -434,7 +433,6 @@ public class DatabaseManager {
                 int points = rs.getInt("points");
                 String definition = rs.getString("definition");
 
-                // Get the morphemes for this word in order
                 String morphemesQuery = "SELECT morpheme_id FROM word_morphemes WHERE word_id = ? ORDER BY position";
                 List<Integer> morphemeIds = new ArrayList<>();
 
@@ -457,7 +455,6 @@ public class DatabaseManager {
     }
 
     public Word validateWord(String text, List<Integer> morphemeIds) {
-        // First, find the word by text
         String wordQuery = "SELECT * FROM words WHERE text = ?";
 
         try (PreparedStatement pstmt = connection.prepareStatement(wordQuery)) {
@@ -470,7 +467,6 @@ public class DatabaseManager {
                 int points = rs.getInt("points");
                 String definition = rs.getString("definition");
 
-                // Get the morphemes for this word in order
                 String morphemesQuery = "SELECT morpheme_id FROM word_morphemes WHERE word_id = ? ORDER BY position";
                 List<Integer> wordMorphemeIds = new ArrayList<>();
 
@@ -483,7 +479,6 @@ public class DatabaseManager {
                     }
                 }
 
-                // Check if the morpheme lists match
                 if (wordMorphemeIds.equals(morphemeIds)) {
                     return new Word(wordId, wordText, wordMorphemeIds, points, definition);
                 }

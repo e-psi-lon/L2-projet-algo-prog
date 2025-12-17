@@ -71,7 +71,6 @@ public class AccountSettingsFrame extends JFrame {
             contentPanel.add(scoreLabel, gbc);
         }
 
-        // Change username section
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
@@ -102,7 +101,6 @@ public class AccountSettingsFrame extends JFrame {
         changeUsernameButton.addActionListener(e -> changeUsername(newUsernameField, usernameLabel));
         contentPanel.add(changeUsernameButton, gbc);
 
-        // Change password section
         gbc.gridy = 7;
         JSeparator separator1 = new JSeparator();
         contentPanel.add(separator1, gbc);
@@ -226,7 +224,6 @@ public class AccountSettingsFrame extends JFrame {
             return;
         }
 
-        // Verify old password by attempting authentication
         User authenticatedUser = authService.authenticate(currentUser.getUsername(), oldPassword);
 
         if (authenticatedUser == null) {
@@ -234,7 +231,6 @@ public class AccountSettingsFrame extends JFrame {
             return;
         }
 
-        // Update password
         authService.updatePassword(currentUser.getId(), newPassword);
 
         JOptionPane.showMessageDialog(this, "Mot de passe changé avec succès!", "Succès", JOptionPane.INFORMATION_MESSAGE);

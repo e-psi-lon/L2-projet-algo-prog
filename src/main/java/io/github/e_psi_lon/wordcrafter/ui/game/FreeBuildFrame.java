@@ -23,7 +23,6 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
     public FreeBuildFrame(GameController gameController, @NotNull GameStateManager gameStateManager) {
         super(gameController, gameStateManager, "WordCrafter - Mode construction libre");
 
-        // Register as a listener for game state changes
         gameStateManager.addListener(this);
 
         setSize(900, 600);
@@ -36,7 +35,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
         mainPanel.setBackground(LIGHT_CLOUD);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Top panel - Instructions
+        // Top panel, Instructions
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(LIGHT_CLOUD);
 
@@ -63,7 +62,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
         topPanel.add(wordPanel, BorderLayout.CENTER);
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
-        // Left panel - Available morphemes list
+        // Left panel, Available morphemes list
         JPanel leftPanel = new JPanel(new BorderLayout(5, 5));
         leftPanel.setBackground(LIGHT_CLOUD);
         leftPanel.setBorder(BorderFactory.createTitledBorder("Morphèmes disponibles"));
@@ -92,7 +91,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
 
         mainPanel.add(leftPanel, BorderLayout.WEST);
 
-        // Right panel - Score and constructed words
+        // Right panel, Score and constructed words
         JPanel rightPanel = new JPanel(new BorderLayout(5, 5));
         rightPanel.setBackground(LIGHT_CLOUD);
         rightPanel.setPreferredSize(new Dimension(250, 0));
@@ -183,13 +182,11 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
             return;
         }
 
-        // Build the word text
         StringBuilder wordText = new StringBuilder();
         for (Morpheme m : selected) {
             wordText.append(m.text());
         }
 
-        // Ask for a definition
         String definition = JOptionPane.showInputDialog(this,
                 "Veuillez fournir une définition pour le mot '" + wordText + "' :",
                 "Définition requise",
@@ -201,7 +198,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
             return;
         }
 
-        // Validate definition matches the morphemes (heuristic check)
+        // Validate definition matches the morphemes
         String validationError = validateDefinition(definition, selected);
         if (validationError != null) {
             JOptionPane.showMessageDialog(this, validationError,
@@ -210,16 +207,12 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
         }
 
         // Calculate points using scaling formula: n + (n-1)²
-        // This rewards longer words: 1→1pt, 2→3pts, 3→7pts, 4→12pts, 5→19pts
         int n = selected.size();
         int points = n + (n - 1) * (n - 1);
-
-        // Award points directly (free build doesn't validate against database)
         gameController.awardPoints(points);
 
         constructedWordsModel.addElement(wordText + " (" + points + " pts)");
 
-        // Success message
         JOptionPane.showMessageDialog(this,
                 "Mot créé avec succès !\n\n" +
                 "Mot: " + wordText + "\n" +
@@ -242,7 +235,6 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
     private @Nullable String validateDefinition(@NotNull String userDefinition, @NotNull List<Morpheme> morphemes) {
         String normalizedUserDef = userDefinition.toLowerCase().trim();
 
-        // Split into words and remove punctuation
         String[] userWords = normalizedUserDef.split("[\\s.,;:!?]+");
 
         for (Morpheme morpheme : morphemes) {
@@ -253,7 +245,7 @@ public class FreeBuildFrame extends GameFrame implements GameStateListener {
 
             // Check if at least one word from the morpheme definition appears in the user definition
             for (String morphemeWord : morphemeWords) {
-                if (morphemeWord.length() < 3) continue; // Skip short words like "de", "un", etc.
+                if (morphemeWord.length() < 3) continue;
 
                 for (String userWord : userWords) {
                     if (userWord.equals(morphemeWord) || userWord.contains(morphemeWord) || morphemeWord.contains(userWord)) {

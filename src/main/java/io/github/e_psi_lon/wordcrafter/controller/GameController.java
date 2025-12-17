@@ -35,11 +35,8 @@ public class GameController {
         Word validatedWord = gameService.validateWord(wordText, morphemeIds);
 
         if (validatedWord != null) {
-            // Record the word in game state and database
             gameStateManager.recordConstructedWord(validatedWord);
             gameService.recordPlayerWord(gameStateManager.getCurrentPlayer().getId(), validatedWord.id());
-
-            // Update player's score in the database
             playerService.addScore(gameStateManager.getCurrentPlayer().getId(), validatedWord.points());
         }
 

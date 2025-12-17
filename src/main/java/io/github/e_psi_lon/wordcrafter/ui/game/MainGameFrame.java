@@ -37,7 +37,7 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
         mainPanel.setBackground(LIGHT_CLOUD);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Top panel - Word-building area
+        // Top panel, Word-building area
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(LIGHT_CLOUD);
         topPanel.setBorder(BorderFactory.createTitledBorder("Mot construit"));
@@ -138,7 +138,6 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
 
         button.addActionListener(e -> {
             gameController.handleMorphemeToggle(morpheme);
-            // Update button appearance based on selection state
             button.setBackground(gameStateManager.isMorphemeSelected(morpheme) ? SELECTED_COLOR : MORPHEME_COLOR);
         });
 
@@ -154,8 +153,6 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
             JLabel label = new JLabel(morpheme.text());
             label.setFont(new Font("SansSerif", Font.BOLD, 18));
             label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-            // Make the label clickable to delete the morpheme
             final Morpheme toRemove = morpheme;
             label.addMouseListener(new MouseAdapter() {
                 @Override
@@ -192,11 +189,9 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
             return;
         }
 
-        // Use controller to validate word
         Word validWord = gameController.handleWordVerification();
 
         if (validWord != null) {
-            // The word is valid, the list will be updated via event listener
             String message = "Mot valide ! Vous avez gagné " + validWord.points() + " points !\n\n";
             if (validWord.definition() != null && !validWord.definition().isEmpty()) {
                 message += "Définition: " + validWord.definition();
@@ -216,7 +211,6 @@ public class MainGameFrame extends GameFrame implements GameStateListener {
                 "Mot invalide : " + wordText,
                 "Invalide", JOptionPane.ERROR_MESSAGE);
 
-            // Clear selection when word is invalid
             gameController.handleClearSelection();
         }
     }

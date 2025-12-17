@@ -66,7 +66,7 @@ public class EditorFrame extends JFrame {
         JPanel wordPanel = createWordPanel();
         tabbedPane.addTab("Ajouter un mot", wordPanel);
 
-        // Admin creation tab (secure - only accessible from editor)
+        // Admin creation tab
         JPanel adminPanel = createAdminPanel();
         tabbedPane.addTab("Créer Admin", adminPanel);
 
@@ -127,7 +127,6 @@ public class EditorFrame extends JFrame {
                 JOptionPane.showMessageDialog(this, "Morphème ajouté avec succès!", "Succès", JOptionPane.INFORMATION_MESSAGE);
                 morphemeTextField.setText("");
                 definitionTextField.setText("");
-                // Reload morphemes from database and update list
                 reloadMorphemes();
             } else {
                 JOptionPane.showMessageDialog(this, "Veuillez remplir tous les champs!", "Erreur", JOptionPane.ERROR_MESSAGE);
@@ -193,7 +192,6 @@ public class EditorFrame extends JFrame {
 
             if (!word.isEmpty() && !idsText.isEmpty() && !definition.isEmpty()) {
                 try {
-                    // Parse comma-separated IDs
                     List<Integer> ids = new ArrayList<>();
                     for (String idStr : idsText.split(",")) {
                         ids.add(Integer.parseInt(idStr.trim()));
@@ -207,7 +205,6 @@ public class EditorFrame extends JFrame {
                     morphemeIdsField.setText("");
                     definitionTextField.setText("");
                     pointsSpinner.setValue(5);
-                    // Reload words from database and update list
                     reloadWords();
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(this, "Erreur: IDs invalides. Utilisez le format: 1, 3, 5", "Erreur", JOptionPane.ERROR_MESSAGE);
@@ -327,13 +324,9 @@ public class EditorFrame extends JFrame {
         JTextField searchField = new JTextField(15);
         searchPanel.add(searchField, BorderLayout.CENTER);
 
-        // List model and list
         JList<String> morphemeList = createMorphemeList(morphemeListModel);
-
-        // Populate list initially
         updateMorphemeList("", morphemeListModel);
 
-        // Search functionality
         searchField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -377,13 +370,10 @@ public class EditorFrame extends JFrame {
         JTextField searchField = new JTextField(15);
         searchPanel.add(searchField, BorderLayout.CENTER);
 
-        // List model and list
         JList<String> wordList = createWordList(wordListModel);
-
-        // Populate list initially
         updateWordList("", wordListModel);
 
-        // Search functionality
+        // Search
         searchField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
