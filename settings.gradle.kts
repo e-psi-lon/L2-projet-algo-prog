@@ -1,1 +1,1 @@
-rootProject.name = "L2-projet-algo-prog"
+rootProject.name = "wordcrafter"
